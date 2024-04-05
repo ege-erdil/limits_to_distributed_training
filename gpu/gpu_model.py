@@ -341,23 +341,6 @@ H100_SXM5_Infinite_Network_Zero_Latency = GPU(
       network_latency_per_level_seconds = [0],
       level_sizes = ()
 )
-NVIDIA_2028_Superpod = GPU(
-      name = "2028 NVIDIA GPU Guess Superpod",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 1.5*2, 16: 1.5*29.58, 8: 1.5*59.16},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 2*132,
-      l2_Bps = 2*6441e9,
-      global_Bps = 2*3352e9,
-      max_clock_Hz = 1.33*1980e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 4*8e10,
-      latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [2*9e11, 2*4.5e11, 2*5e10],
-      network_latency_per_level_seconds = [5e-6, 5e-6, 5e-6],
-      level_sizes = (8, 32)
-)
 H100_SXM5_Superpod_Singleton = GPU(
       name = "H100 SXM Superpod Singleton",
       bitwidth = 16,
@@ -398,5 +381,5 @@ H100_Datacenter = GPU(
       network_latency_per_level_seconds = [5e-6, 5e-6, 1e-3],
       level_sizes = (8, 4096)
 )
-gpu_list = [V100_SXM2, A100, H100_SXM5, H100_SXM5_Superpod, H100_SXM5_Superpod_Singleton, NVIDIA_2028_Superpod]
+gpu_list = [V100_SXM2, A100, H100_SXM5, H100_SXM5_Superpod, H100_SXM5_Superpod_Singleton]
 gpu_dict = {gpu.name: gpu for gpu in gpu_list}
