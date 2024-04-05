@@ -1,0 +1,615 @@
+Simulating training runs for setting: V100 SXM
+12288 49152
+14336 57344
+16384 65536
+18432 73728
+20480 81920
+22528 90112
+24576 98304
+26624 106496
+28672 114688
+30720 122880
+32768 131072
+36864 147456
+40960 163840
+45056 180224
+49152 196608
+53248 212992
+57344 229376
+61440 245760
+65536 262144
+73728 294912
+81920 327680
+90112 360448
+98304 393216
+106496 425984
+114688 458752
+122880 491520
+Simulation complete! Results below:
+
+d_model: 1.23e+04	 Params: 1.86e+12	 Layers: 192	 Sparsity: 8	 Batch size (tok): 2.94e+07	 Training: 5.16e+25 FLOP, 5.31 months	 Util: 0.899	 N_GPU: 3.28e+04	 (1, 16)=16 TP, 1 PP (v=1), 256 DP, 8 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 1] EP: [1, 8]
+TP comm time: 1.410 months, PP comm time: 0.566 months, DP comm time: 2.222 months, Network latency time: 0.005 months
+Number of vertical microbatches: 1, recompute activations: None
+Individual GPU matmul dimensions: 12288, 3072, 14336
+
+d_model: 1.43e+04	 Params: 3.31e+12	 Layers: 224	 Sparsity: 9	 Batch size (tok): 3.30e+07	 Training: 1.46e+26 FLOP, 3.37 months	 Util: 0.892	 N_GPU: 1.47e+05	 (4, 4)=16 TP, 2 PP (v=112), 512 DP, 9 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 4] PP: [1, 2] EP: [1, 9]
+TP comm time: 1.406 months, PP comm time: 0.175 months, DP comm time: 1.518 months, Network latency time: 0.009 months
+Number of vertical microbatches: 2, recompute activations: None
+Individual GPU matmul dimensions: 3584, 14336, 3584
+
+d_model: 1.64e+04	 Params: 5.50e+12	 Layers: 256	 Sparsity: 10	 Batch size (tok): 4.19e+07	 Training: 3.63e+26 FLOP, 3.79 months	 Util: 0.885	 N_GPU: 3.28e+05	 (1, 16)=16 TP, 4 PP (v=64), 512 DP, 10 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 4] EP: [1, 10]
+TP comm time: 0.743 months, PP comm time: 0.171 months, DP comm time: 2.736 months, Network latency time: 0.013 months
+Number of vertical microbatches: 4, recompute activations: None
+Individual GPU matmul dimensions: 16384, 4096, 2048
+
+d_model: 1.84e+04	 Params: 8.35e+12	 Layers: 256	 Sparsity: 12	 Batch size (tok): 5.03e+07	 Training: 6.97e+26 FLOP, 3.08 months	 Util: 0.871	 N_GPU: 7.86e+05	 (1, 8)=8 TP, 8 PP (v=32), 1024 DP, 12 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 128] TP_m: [1, 1] TP_ff: [1, 8] PP: [1, 8] EP: [1, 12]
+TP comm time: 1.708 months, PP comm time: 0.122 months, DP comm time: 0.865 months, Network latency time: 0.010 months
+Number of vertical microbatches: 8, recompute activations: None
+Individual GPU matmul dimensions: 18432, 9216, 512
+
+d_model: 2.05e+04	 Params: 1.35e+13	 Layers: 288	 Sparsity: 14	 Batch size (tok): 6.61e+07	 Training: 1.57e+27 FLOP, 5.85 months	 Util: 0.885	 N_GPU: 9.18e+05	 (4, 8)=32 TP, 4 PP (v=72), 512 DP, 14 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 8] PP: [1, 4] EP: [1, 14]
+TP comm time: 3.388 months, PP comm time: 0.211 months, DP comm time: 2.032 months, Network latency time: 0.022 months
+Number of vertical microbatches: 4, recompute activations: None
+Individual GPU matmul dimensions: 5120, 10240, 2304
+
+d_model: 2.25e+04	 Params: 1.82e+13	 Layers: 320	 Sparsity: 14	 Batch size (tok): 7.34e+07	 Training: 2.84e+27 FLOP, 5.36 months	 Util: 0.873	 N_GPU: 1.84e+06	 (8, 8)=64 TP, 8 PP (v=40), 256 DP, 14 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 8] EP: [1, 14]
+TP comm time: 3.248 months, PP comm time: 0.173 months, DP comm time: 1.525 months, Network latency time: 0.030 months
+Number of vertical microbatches: 8, recompute activations: None
+Individual GPU matmul dimensions: 2816, 11264, 2560
+
+d_model: 2.46e+04	 Params: 2.47e+13	 Layers: 320	 Sparsity: 16	 Batch size (tok): 8.39e+07	 Training: 4.59e+27 FLOP, 3.90 months	 Util: 0.850	 N_GPU: 4.19e+06	 (1, 8)=8 TP, 16 PP (v=20), 2048 DP, 16 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 256] TP_m: [1, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 16]
+TP comm time: 1.581 months, PP comm time: 0.113 months, DP comm time: 1.713 months, Network latency time: 0.022 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 24576, 12288, 160
+
+d_model: 2.66e+04	 Params: 3.92e+13	 Layers: 384	 Sparsity: 18	 Batch size (tok): 9.44e+07	 Training: 1.02e+28 FLOP, 4.04 months	 Util: 0.813	 N_GPU: 9.44e+06	 (8, 8)=64 TP, 32 PP (v=12), 256 DP, 18 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 32] EP: [1, 18]
+TP comm time: 1.930 months, PP comm time: 0.103 months, DP comm time: 1.071 months, Network latency time: 0.061 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 3328, 13312, 640
+
+d_model: 2.87e+04	 Params: 4.55e+13	 Layers: 384	 Sparsity: 18	 Batch size (tok): 1.13e+08	 Training: 1.38e+28 FLOP, 5.20 months	 Util: 0.851	 N_GPU: 9.44e+06	 (8, 8)=64 TP, 16 PP (v=24), 512 DP, 18 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 18]
+TP comm time: 2.411 months, PP comm time: 0.129 months, DP comm time: 2.406 months, Network latency time: 0.059 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 3584, 14336, 768
+
+d_model: 3.07e+04	 Params: 5.80e+13	 Layers: 384	 Sparsity: 20	 Batch size (tok): 1.26e+08	 Training: 2.02e+28 FLOP, 3.61 months	 Util: 0.808	 N_GPU: 2.10e+07	 (8, 8)=64 TP, 32 PP (v=12), 512 DP, 20 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 32] EP: [1, 20]
+TP comm time: 1.482 months, PP comm time: 0.079 months, DP comm time: 1.585 months, Network latency time: 0.067 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 3840, 15360, 384
+
+d_model: 3.28e+04	 Params: 6.60e+13	 Layers: 384	 Sparsity: 20	 Batch size (tok): 1.26e+08	 Training: 2.61e+28 FLOP, 4.65 months	 Util: 0.811	 N_GPU: 2.10e+07	 (8, 8)=64 TP, 32 PP (v=12), 512 DP, 20 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 32] EP: [1, 20]
+TP comm time: 1.799 months, PP comm time: 0.096 months, DP comm time: 2.052 months, Network latency time: 0.077 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 4096, 16384, 384
+
+d_model: 3.69e+04	 Params: 1.17e+14	 Layers: 448	 Sparsity: 24	 Batch size (tok): 1.51e+08	 Training: 6.83e+28 FLOP, 5.39 months	 Util: 0.763	 N_GPU: 5.03e+07	 (4, 16)=64 TP, 32 PP (v=14), 1024 DP, 24 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 512] TP_m: [2, 2] TP_ff: [2, 8] PP: [1, 32] EP: [1, 24]
+TP comm time: 2.304 months, PP comm time: 0.093 months, DP comm time: 2.424 months, Network latency time: 0.238 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 9216, 9216, 192
+
+d_model: 4.10e+04	 Params: 1.92e+14	 Layers: 512	 Sparsity: 28	 Batch size (tok): 2.06e+08	 Training: 1.59e+29 FLOP, 5.47 months	 Util: 0.748	 N_GPU: 1.17e+08	 (8, 16)=128 TP, 64 PP (v=8), 512 DP, 28 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 2] TP_ff: [1, 16] PP: [1, 64] EP: [1, 28]
+TP comm time: 3.514 months, PP comm time: 0.084 months, DP comm time: 1.032 months, Network latency time: 0.255 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 5120, 10240, 224
+
+d_model: 4.51e+04	 Params: 2.33e+14	 Layers: 512	 Sparsity: 28	 Batch size (tok): 2.06e+08	 Training: 2.32e+29 FLOP, 4.61 months	 Util: 0.650	 N_GPU: 2.35e+08	 (16, 16)=256 TP, 128 PP (v=4), 256 DP, 28 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 2] TP_ff: [1, 16] PP: [1, 128] EP: [1, 28]
+TP comm time: 2.636 months, PP comm time: 0.056 months, DP comm time: 0.697 months, Network latency time: 0.309 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 2816, 11264, 224
+
+d_model: 4.92e+04	 Params: 3.56e+14	 Layers: 576	 Sparsity: 32	 Batch size (tok): 2.68e+08	 Training: 4.76e+29 FLOP, 4.90 months	 Util: 0.548	 N_GPU: 5.37e+08	 (8, 32)=256 TP, 64 PP (v=9), 1024 DP, 32 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 512] TP_m: [2, 4] TP_ff: [2, 16] PP: [1, 64] EP: [1, 32]
+TP comm time: 2.714 months, PP comm time: 0.046 months, DP comm time: 1.187 months, Network latency time: 0.524 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 6144, 6144, 128
+
+d_model: 5.32e+04	 Params: 4.70e+14	 Layers: 576	 Sparsity: 36	 Batch size (tok): 3.02e+08	 Training: 7.37e+29 FLOP, 4.41 months	 Util: 0.420	 N_GPU: 1.21e+09	 (16, 32)=512 TP, 64 PP (v=9), 1024 DP, 36 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [4, 4] TP_ff: [2, 16] PP: [1, 64] EP: [1, 36]
+TP comm time: 1.881 months, PP comm time: 0.029 months, DP comm time: 1.511 months, Network latency time: 0.614 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 3328, 6656, 128
+
+d_model: 5.73e+04	 Params: 6.06e+14	 Layers: 640	 Sparsity: 36	 Batch size (tok): 3.02e+08	 Training: 1.22e+30 FLOP, 5.91 months	 Util: 0.520	 N_GPU: 1.21e+09	 (16, 32)=512 TP, 128 PP (v=5), 512 DP, 36 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [4, 4] TP_ff: [2, 16] PP: [1, 128] EP: [1, 36]
+TP comm time: 2.900 months, PP comm time: 0.045 months, DP comm time: 1.253 months, Network latency time: 0.880 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 3584, 7168, 128
+
+d_model: 6.14e+04	 Params: 7.73e+14	 Layers: 640	 Sparsity: 40	 Batch size (tok): 3.77e+08	 Training: 1.79e+30 FLOP, 5.07 months	 Util: 0.399	 N_GPU: 2.68e+09	 (32, 32)=1024 TP, 128 PP (v=5), 512 DP, 40 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [8, 4] TP_ff: [1, 32] PP: [1, 128] EP: [1, 40]
+TP comm time: 2.886 months, PP comm time: 0.028 months, DP comm time: 0.734 months, Network latency time: 0.698 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 1920, 7680, 144
+
+d_model: 6.55e+04	 Params: 8.80e+14	 Layers: 640	 Sparsity: 40	 Batch size (tok): 3.77e+08	 Training: 2.32e+30 FLOP, 4.34 months	 Util: 0.302	 N_GPU: 5.37e+09	 (32, 32)=1024 TP, 128 PP (v=5), 1024 DP, 40 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [8, 4] TP_ff: [1, 32] PP: [1, 128] EP: [1, 40]
+TP comm time: 1.751 months, PP comm time: 0.017 months, DP comm time: 0.951 months, Network latency time: 0.794 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 2048, 8192, 72
+
+d_model: 7.37e+04	 Params: 1.60e+15	 Layers: 768	 Sparsity: 48	 Batch size (tok): 5.03e+08	 Training: 6.42e+30 FLOP, 5.63 months	 Util: 0.268	 N_GPU: 1.29e+10	 (32, 64)=2048 TP, 128 PP (v=6), 1024 DP, 48 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [4, 8] TP_ff: [2, 32] PP: [1, 128] EP: [1, 48]
+TP comm time: 2.390 months, PP comm time: 0.017 months, DP comm time: 0.987 months, Network latency time: 1.675 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 2304, 4608, 80
+
+d_model: 8.19e+04	 Params: 2.31e+15	 Layers: 768	 Sparsity: 56	 Batch size (tok): 5.87e+08	 Training: 1.14e+31 FLOP, 5.51 months	 Util: 0.209	 N_GPU: 3.01e+10	 (16, 256)=4096 TP, 128 PP (v=6), 1024 DP, 56 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [1, 16] TP_ff: [8, 32] PP: [1, 128] EP: [1, 56]
+TP comm time: 2.581 months, PP comm time: 0.012 months, DP comm time: 0.752 months, Network latency time: 1.609 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 5120, 1280, 80
+
+d_model: 9.01e+04	 Params: 3.26e+15	 Layers: 896	 Sparsity: 56	 Batch size (tok): 5.87e+08	 Training: 2.28e+31 FLOP, 5.81 months	 Util: 0.099	 N_GPU: 1.20e+11	 (128, 128)=16384 TP, 128 PP (v=7), 1024 DP, 56 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [8, 16] TP_ff: [1, 128] PP: [1, 128] EP: [1, 56]
+TP comm time: 2.391 months, PP comm time: 0.005 months, DP comm time: 0.375 months, Network latency time: 2.649 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 704, 2816, 80
+
+d_model: 9.83e+04	 Params: 4.43e+15	 Layers: 896	 Sparsity: 64	 Batch size (tok): 8.05e+08	 Training: 3.69e+31 FLOP, 5.24 months	 Util: 0.078	 N_GPU: 2.75e+11	 (128, 128)=16384 TP, 128 PP (v=7), 2048 DP, 64 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 2048] TP_m: [8, 16] TP_ff: [1, 128] PP: [1, 128] EP: [1, 64]
+TP comm time: 1.552 months, PP comm time: 0.003 months, DP comm time: 0.443 months, Network latency time: 2.627 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 768, 3072, 48
+
+d_model: 1.06e+05	 Params: 6.69e+15	 Layers: 1024	 Sparsity: 72	 Batch size (tok): 9.06e+08	 Training: 7.46e+31 FLOP, 5.62 months	 Util: 0.033	 N_GPU: 1.24e+12	 (128, 256)=32768 TP, 32 PP (v=32), 16384 DP, 72 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 2048] TP_m: [1, 128] TP_ff: [1, 256] PP: [1, 32] EP: [1, 72]
+TP comm time: 2.191 months, PP comm time: 0.001 months, DP comm time: 0.315 months, Network latency time: 2.877 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 832, 1664, 24
+
+d_model: 1.15e+05	 Params: 7.76e+15	 Layers: 1024	 Sparsity: 72	 Batch size (tok): 9.06e+08	 Training: 1.00e+32 FLOP, 5.93 months	 Util: 0.021	 N_GPU: 2.47e+12	 (128, 512)=65536 TP, 16 PP (v=64), 32768 DP, 72 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 4096] TP_m: [1, 128] TP_ff: [1, 512] PP: [1, 16] EP: [1, 72]
+TP comm time: 1.828 months, PP comm time: 0.001 months, DP comm time: 0.424 months, Network latency time: 3.337 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 896, 896, 24
+
+Simulating training runs for setting: A100 SXM
+12288 49152
+14336 57344
+16384 65536
+18432 73728
+20480 81920
+22528 90112
+24576 98304
+26624 106496
+28672 114688
+30720 122880
+32768 131072
+36864 147456
+40960 163840
+45056 180224
+49152 196608
+53248 212992
+57344 229376
+61440 245760
+65536 262144
+73728 294912
+81920 327680
+90112 360448
+98304 393216
+106496 425984
+114688 458752
+122880 491520
+Simulation complete! Results below:
+
+d_model: 1.23e+04	 Params: 1.86e+12	 Layers: 192	 Sparsity: 8	 Batch size (tok): 2.94e+07	 Training: 5.16e+25 FLOP, 4.53 months	 Util: 0.849	 N_GPU: 1.64e+04	 (1, 16)=16 TP, 1 PP (v=1), 128 DP, 8 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 128] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 1] EP: [1, 8]
+TP comm time: 1.410 months, PP comm time: 0.566 months, DP comm time: 1.107 months, Network latency time: 0.005 months
+Number of vertical microbatches: 1, recompute activations: None
+Individual GPU matmul dimensions: 12288, 3072, 28672
+
+d_model: 1.43e+04	 Params: 3.31e+12	 Layers: 224	 Sparsity: 9	 Batch size (tok): 3.30e+07	 Training: 1.46e+26 FLOP, 5.72 months	 Util: 0.847	 N_GPU: 3.69e+04	 (2, 16)=32 TP, 1 PP (v=1), 128 DP, 9 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 128] TP_m: [2, 1] TP_ff: [4, 4] PP: [1, 1] EP: [1, 9]
+TP comm time: 3.047 months, PP comm time: 0.622 months, DP comm time: 1.395 months, Network latency time: 0.013 months
+Number of vertical microbatches: 1, recompute activations: None
+Individual GPU matmul dimensions: 7168, 3584, 28672
+
+d_model: 1.64e+04	 Params: 5.50e+12	 Layers: 256	 Sparsity: 10	 Batch size (tok): 4.19e+07	 Training: 3.63e+26 FLOP, 3.21 months	 Util: 0.841	 N_GPU: 1.64e+05	 (4, 4)=16 TP, 2 PP (v=128), 512 DP, 10 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 4] PP: [1, 2] EP: [1, 10]
+TP comm time: 1.371 months, PP comm time: 0.171 months, DP comm time: 1.480 months, Network latency time: 0.013 months
+Number of vertical microbatches: 2, recompute activations: None
+Individual GPU matmul dimensions: 4096, 16384, 4096
+
+d_model: 1.84e+04	 Params: 8.35e+12	 Layers: 256	 Sparsity: 12	 Batch size (tok): 5.03e+07	 Training: 6.97e+26 FLOP, 5.14 months	 Util: 0.842	 N_GPU: 1.97e+05	 (4, 8)=32 TP, 2 PP (v=128), 256 DP, 12 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [4, 1] TP_ff: [2, 4] PP: [1, 2] EP: [1, 12]
+TP comm time: 2.114 months, PP comm time: 0.243 months, DP comm time: 2.187 months, Network latency time: 0.023 months
+Number of vertical microbatches: 2, recompute activations: None
+Individual GPU matmul dimensions: 4608, 9216, 8192
+
+d_model: 2.05e+04	 Params: 1.35e+13	 Layers: 288	 Sparsity: 14	 Batch size (tok): 6.61e+07	 Training: 1.57e+27 FLOP, 4.99 months	 Util: 0.835	 N_GPU: 4.59e+05	 (1, 16)=16 TP, 4 PP (v=72), 512 DP, 14 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 4] EP: [1, 14]
+TP comm time: 0.918 months, PP comm time: 0.211 months, DP comm time: 3.758 months, Network latency time: 0.022 months
+Number of vertical microbatches: 4, recompute activations: None
+Individual GPU matmul dimensions: 20480, 5120, 2304
+
+d_model: 2.25e+04	 Params: 1.82e+13	 Layers: 320	 Sparsity: 14	 Batch size (tok): 7.34e+07	 Training: 2.84e+27 FLOP, 4.58 months	 Util: 0.823	 N_GPU: 9.18e+05	 (1, 16)=16 TP, 8 PP (v=40), 512 DP, 14 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 8] EP: [1, 14]
+TP comm time: 0.754 months, PP comm time: 0.173 months, DP comm time: 3.056 months, Network latency time: 0.030 months
+Number of vertical microbatches: 8, recompute activations: None
+Individual GPU matmul dimensions: 22528, 5632, 1280
+
+d_model: 2.46e+04	 Params: 2.47e+13	 Layers: 320	 Sparsity: 16	 Batch size (tok): 8.39e+07	 Training: 4.59e+27 FLOP, 3.27 months	 Util: 0.818	 N_GPU: 2.10e+06	 (4, 8)=32 TP, 8 PP (v=40), 512 DP, 16 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 8] PP: [1, 8] EP: [1, 16]
+TP comm time: 1.807 months, PP comm time: 0.113 months, DP comm time: 1.170 months, Network latency time: 0.036 months
+Number of vertical microbatches: 8, recompute activations: None
+Individual GPU matmul dimensions: 6144, 12288, 1280
+
+d_model: 2.66e+04	 Params: 3.92e+13	 Layers: 384	 Sparsity: 18	 Batch size (tok): 9.44e+07	 Training: 1.02e+28 FLOP, 3.33 months	 Util: 0.795	 N_GPU: 4.72e+06	 (8, 8)=64 TP, 16 PP (v=24), 256 DP, 18 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 18]
+TP comm time: 1.930 months, PP comm time: 0.103 months, DP comm time: 1.071 months, Network latency time: 0.061 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 3328, 13312, 1280
+
+d_model: 2.87e+04	 Params: 4.55e+13	 Layers: 384	 Sparsity: 18	 Batch size (tok): 1.13e+08	 Training: 1.38e+28 FLOP, 4.42 months	 Util: 0.805	 N_GPU: 4.72e+06	 (1, 8)=8 TP, 16 PP (v=24), 2048 DP, 18 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 256] TP_m: [1, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 18]
+TP comm time: 1.808 months, PP comm time: 0.129 months, DP comm time: 1.904 months, Network latency time: 0.035 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 28672, 14336, 192
+
+d_model: 3.07e+04	 Params: 5.80e+13	 Layers: 384	 Sparsity: 20	 Batch size (tok): 1.26e+08	 Training: 2.02e+28 FLOP, 5.84 months	 Util: 0.803	 N_GPU: 5.24e+06	 (8, 8)=64 TP, 16 PP (v=24), 256 DP, 20 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 20]
+TP comm time: 2.965 months, PP comm time: 0.158 months, DP comm time: 1.582 months, Network latency time: 0.067 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 3840, 15360, 1536
+
+d_model: 3.28e+04	 Params: 6.60e+13	 Layers: 384	 Sparsity: 20	 Batch size (tok): 1.26e+08	 Training: 2.61e+28 FLOP, 3.88 months	 Util: 0.784	 N_GPU: 1.05e+07	 (4, 8)=32 TP, 16 PP (v=24), 1024 DP, 20 EP
+Parallelism partition across the network hierarchy:
+DP: [4, 256] TP_m: [2, 2] TP_ff: [1, 8] PP: [1, 16] EP: [1, 20]
+TP comm time: 2.249 months, PP comm time: 0.096 months, DP comm time: 1.281 months, Network latency time: 0.107 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 8192, 16384, 384
+
+d_model: 3.69e+04	 Params: 1.17e+14	 Layers: 448	 Sparsity: 24	 Batch size (tok): 1.51e+08	 Training: 6.83e+28 FLOP, 4.42 months	 Util: 0.749	 N_GPU: 2.52e+07	 (4, 8)=32 TP, 32 PP (v=14), 1024 DP, 24 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 512] TP_m: [4, 1] TP_ff: [1, 8] PP: [1, 32] EP: [1, 24]
+TP comm time: 1.494 months, PP comm time: 0.093 months, DP comm time: 2.424 months, Network latency time: 0.132 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 9216, 18432, 192
+
+d_model: 4.10e+04	 Params: 1.92e+14	 Layers: 512	 Sparsity: 28	 Batch size (tok): 2.06e+08	 Training: 1.59e+29 FLOP, 4.65 months	 Util: 0.709	 N_GPU: 5.87e+07	 (8, 8)=64 TP, 64 PP (v=8), 512 DP, 28 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 64] EP: [1, 28]
+TP comm time: 1.562 months, PP comm time: 0.084 months, DP comm time: 1.909 months, Network latency time: 0.182 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 5120, 20480, 224
+
+d_model: 4.51e+04	 Params: 2.33e+14	 Layers: 512	 Sparsity: 28	 Batch size (tok): 2.06e+08	 Training: 2.32e+29 FLOP, 3.74 months	 Util: 0.646	 N_GPU: 1.17e+08	 (4, 32)=128 TP, 64 PP (v=8), 512 DP, 28 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [2, 2] TP_ff: [4, 8] PP: [1, 64] EP: [1, 28]
+TP comm time: 1.522 months, PP comm time: 0.056 months, DP comm time: 1.397 months, Network latency time: 0.397 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 11264, 5632, 224
+
+d_model: 4.92e+04	 Params: 3.56e+14	 Layers: 576	 Sparsity: 32	 Batch size (tok): 2.68e+08	 Training: 4.76e+29 FLOP, 4.06 months	 Util: 0.533	 N_GPU: 2.68e+08	 (8, 32)=256 TP, 64 PP (v=9), 512 DP, 32 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [2, 4] TP_ff: [4, 8] PP: [1, 64] EP: [1, 32]
+TP comm time: 2.043 months, PP comm time: 0.046 months, DP comm time: 1.096 months, Network latency time: 0.524 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 6144, 6144, 256
+
+d_model: 5.32e+04	 Params: 4.70e+14	 Layers: 576	 Sparsity: 36	 Batch size (tok): 3.02e+08	 Training: 7.37e+29 FLOP, 5.24 months	 Util: 0.569	 N_GPU: 3.02e+08	 (8, 32)=256 TP, 64 PP (v=9), 512 DP, 36 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [2, 4] TP_ff: [4, 8] PP: [1, 64] EP: [1, 36]
+TP comm time: 2.598 months, PP comm time: 0.058 months, DP comm time: 1.509 months, Network latency time: 0.614 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 6656, 6656, 256
+
+d_model: 5.73e+04	 Params: 6.06e+14	 Layers: 640	 Sparsity: 36	 Batch size (tok): 3.02e+08	 Training: 1.22e+30 FLOP, 5.16 months	 Util: 0.480	 N_GPU: 6.04e+08	 (16, 32)=512 TP, 128 PP (v=5), 256 DP, 36 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [4, 4] TP_ff: [2, 16] PP: [1, 128] EP: [1, 36]
+TP comm time: 2.900 months, PP comm time: 0.045 months, DP comm time: 0.625 months, Network latency time: 0.880 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 3584, 7168, 256
+
+d_model: 6.14e+04	 Params: 7.73e+14	 Layers: 640	 Sparsity: 40	 Batch size (tok): 3.77e+08	 Training: 1.79e+30 FLOP, 4.09 months	 Util: 0.398	 N_GPU: 1.34e+09	 (16, 32)=512 TP, 128 PP (v=5), 512 DP, 40 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [4, 4] TP_ff: [2, 16] PP: [1, 128] EP: [1, 40]
+TP comm time: 1.783 months, PP comm time: 0.028 months, DP comm time: 0.734 months, Network latency time: 0.898 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 3840, 7680, 144
+
+d_model: 6.55e+04	 Params: 8.80e+14	 Layers: 640	 Sparsity: 40	 Batch size (tok): 3.77e+08	 Training: 2.32e+30 FLOP, 5.10 months	 Util: 0.414	 N_GPU: 1.34e+09	 (8, 64)=512 TP, 128 PP (v=5), 512 DP, 40 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [2, 4] TP_ff: [4, 16] PP: [1, 128] EP: [1, 40]
+TP comm time: 2.164 months, PP comm time: 0.033 months, DP comm time: 0.950 months, Network latency time: 1.021 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 8192, 4096, 144
+
+d_model: 7.37e+04	 Params: 1.60e+15	 Layers: 768	 Sparsity: 48	 Batch size (tok): 5.03e+08	 Training: 6.42e+30 FLOP, 5.06 months	 Util: 0.241	 N_GPU: 6.44e+09	 (32, 64)=2048 TP, 128 PP (v=6), 512 DP, 48 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [4, 8] TP_ff: [2, 32] PP: [1, 128] EP: [1, 48]
+TP comm time: 2.390 months, PP comm time: 0.017 months, DP comm time: 0.493 months, Network latency time: 1.675 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 2304, 4608, 160
+
+d_model: 8.19e+04	 Params: 2.31e+15	 Layers: 768	 Sparsity: 56	 Batch size (tok): 5.87e+08	 Training: 1.14e+31 FLOP, 5.02 months	 Util: 0.185	 N_GPU: 1.50e+10	 (16, 128)=2048 TP, 64 PP (v=12), 2048 DP, 56 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 1024] TP_m: [1, 16] TP_ff: [4, 32] PP: [1, 64] EP: [1, 56]
+TP comm time: 2.330 months, PP comm time: 0.012 months, DP comm time: 0.815 months, Network latency time: 1.609 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 5120, 2560, 80
+
+d_model: 9.01e+04	 Params: 3.26e+15	 Layers: 896	 Sparsity: 56	 Batch size (tok): 5.87e+08	 Training: 2.28e+31 FLOP, 5.25 months	 Util: 0.088	 N_GPU: 6.01e+10	 (64, 128)=8192 TP, 128 PP (v=7), 1024 DP, 56 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [8, 8] TP_ff: [1, 128] PP: [1, 128] EP: [1, 56]
+TP comm time: 1.851 months, PP comm time: 0.005 months, DP comm time: 0.375 months, Network latency time: 2.649 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 1408, 2816, 80
+
+d_model: 9.83e+04	 Params: 4.43e+15	 Layers: 896	 Sparsity: 64	 Batch size (tok): 8.05e+08	 Training: 3.69e+31 FLOP, 5.88 months	 Util: 0.111	 N_GPU: 6.87e+10	 (64, 128)=8192 TP, 128 PP (v=7), 1024 DP, 64 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 1024] TP_m: [8, 8] TP_ff: [1, 128] PP: [1, 128] EP: [1, 64]
+TP comm time: 2.403 months, PP comm time: 0.007 months, DP comm time: 0.442 months, Network latency time: 2.627 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 1536, 3072, 96
+
+d_model: 1.06e+05	 Params: 6.69e+15	 Layers: 1024	 Sparsity: 72	 Batch size (tok): 9.06e+08	 Training: 7.46e+31 FLOP, 5.29 months	 Util: 0.028	 N_GPU: 6.18e+11	 (128, 256)=32768 TP, 64 PP (v=16), 4096 DP, 72 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 512] TP_m: [1, 128] TP_ff: [1, 256] PP: [1, 64] EP: [1, 72]
+TP comm time: 2.191 months, PP comm time: 0.001 months, DP comm time: 0.079 months, Network latency time: 2.877 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 832, 1664, 48
+
+d_model: 1.15e+05	 Params: 7.76e+15	 Layers: 1024	 Sparsity: 72	 Batch size (tok): 9.06e+08	 Training: 1.00e+32 FLOP, 5.61 months	 Util: 0.018	 N_GPU: 1.24e+12	 (128, 512)=65536 TP, 8 PP (v=128), 32768 DP, 72 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 4096] TP_m: [1, 128] TP_ff: [1, 512] PP: [1, 8] EP: [1, 72]
+TP comm time: 1.828 months, PP comm time: 0.001 months, DP comm time: 0.424 months, Network latency time: 3.337 months
+Number of vertical microbatches: 8, recompute activations: None
+Individual GPU matmul dimensions: 896, 896, 48
+
+Simulating training runs for setting: H100 SXM
+12288 49152
+14336 57344
+16384 65536
+18432 73728
+20480 81920
+22528 90112
+24576 98304
+26624 106496
+28672 114688
+30720 122880
+32768 131072
+36864 147456
+40960 163840
+45056 180224
+49152 196608
+53248 212992
+57344 229376
+61440 245760
+65536 262144
+73728 294912
+81920 327680
+90112 360448
+98304 393216
+106496 425984
+114688 458752
+122880 491520
+Simulation complete! Results below:
+
+d_model: 1.23e+04	 Params: 1.86e+12	 Layers: 192	 Sparsity: 8	 Batch size (tok): 2.94e+07	 Training: 5.16e+25 FLOP, 3.47 months	 Util: 0.699	 N_GPU: 8.19e+03	 (1, 8)=8 TP, 1 PP (v=1), 128 DP, 8 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 128] TP_m: [1, 1] TP_ff: [8, 1] PP: [1, 1] EP: [1, 8]
+TP comm time: 0.506 months, PP comm time: 0.566 months, DP comm time: 1.107 months, Network latency time: 0.003 months
+Number of vertical microbatches: 1, recompute activations: None
+Individual GPU matmul dimensions: 12288, 6144, 28672
+
+d_model: 1.43e+04	 Params: 3.31e+12	 Layers: 224	 Sparsity: 9	 Batch size (tok): 3.30e+07	 Training: 1.46e+26 FLOP, 4.38 months	 Util: 0.698	 N_GPU: 1.84e+04	 (1, 16)=16 TP, 1 PP (v=1), 128 DP, 9 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 128] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 1] EP: [1, 9]
+TP comm time: 1.797 months, PP comm time: 0.622 months, DP comm time: 1.395 months, Network latency time: 0.010 months
+Number of vertical microbatches: 1, recompute activations: None
+Individual GPU matmul dimensions: 14336, 3584, 28672
+
+d_model: 1.64e+04	 Params: 5.50e+12	 Layers: 256	 Sparsity: 10	 Batch size (tok): 4.19e+07	 Training: 3.63e+26 FLOP, 4.89 months	 Util: 0.696	 N_GPU: 4.10e+04	 (2, 8)=16 TP, 1 PP (v=1), 256 DP, 10 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [2, 1] TP_ff: [4, 2] PP: [1, 1] EP: [1, 10]
+TP comm time: 1.447 months, PP comm time: 0.614 months, DP comm time: 2.731 months, Network latency time: 0.020 months
+Number of vertical microbatches: 1, recompute activations: None
+Individual GPU matmul dimensions: 8192, 8192, 16384
+
+d_model: 1.84e+04	 Params: 8.35e+12	 Layers: 256	 Sparsity: 12	 Batch size (tok): 5.03e+07	 Training: 6.97e+26 FLOP, 3.94 months	 Util: 0.693	 N_GPU: 9.83e+04	 (1, 16)=16 TP, 2 PP (v=128), 256 DP, 12 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 2] EP: [1, 12]
+TP comm time: 1.247 months, PP comm time: 0.243 months, DP comm time: 2.187 months, Network latency time: 0.016 months
+Number of vertical microbatches: 2, recompute activations: None
+Individual GPU matmul dimensions: 18432, 4608, 8192
+
+d_model: 2.05e+04	 Params: 1.35e+13	 Layers: 288	 Sparsity: 14	 Batch size (tok): 6.61e+07	 Training: 1.57e+27 FLOP, 3.83 months	 Util: 0.687	 N_GPU: 2.29e+05	 (1, 16)=16 TP, 4 PP (v=72), 256 DP, 14 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [1, 1] TP_ff: [8, 2] PP: [1, 4] EP: [1, 14]
+TP comm time: 1.082 months, PP comm time: 0.211 months, DP comm time: 1.875 months, Network latency time: 0.022 months
+Number of vertical microbatches: 4, recompute activations: None
+Individual GPU matmul dimensions: 20480, 5120, 4608
+
+d_model: 2.25e+04	 Params: 1.82e+13	 Layers: 320	 Sparsity: 14	 Batch size (tok): 7.34e+07	 Training: 2.84e+27 FLOP, 3.47 months	 Util: 0.684	 N_GPU: 4.59e+05	 (4, 4)=16 TP, 4 PP (v=80), 512 DP, 14 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 4] PP: [1, 4] EP: [1, 14]
+TP comm time: 1.508 months, PP comm time: 0.173 months, DP comm time: 1.695 months, Network latency time: 0.030 months
+Number of vertical microbatches: 4, recompute activations: None
+Individual GPU matmul dimensions: 5632, 22528, 2560
+
+d_model: 2.46e+04	 Params: 2.47e+13	 Layers: 320	 Sparsity: 16	 Batch size (tok): 8.39e+07	 Training: 4.59e+27 FLOP, 4.91 months	 Util: 0.686	 N_GPU: 5.24e+05	 (4, 4)=16 TP, 4 PP (v=80), 512 DP, 16 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 4] PP: [1, 4] EP: [1, 16]
+TP comm time: 1.958 months, PP comm time: 0.225 months, DP comm time: 2.401 months, Network latency time: 0.036 months
+Number of vertical microbatches: 4, recompute activations: None
+Individual GPU matmul dimensions: 6144, 24576, 2560
+
+d_model: 2.66e+04	 Params: 3.92e+13	 Layers: 384	 Sparsity: 18	 Batch size (tok): 9.44e+07	 Training: 1.02e+28 FLOP, 4.95 months	 Util: 0.674	 N_GPU: 1.18e+06	 (4, 4)=16 TP, 8 PP (v=48), 512 DP, 18 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 4] PP: [1, 8] EP: [1, 18]
+TP comm time: 1.792 months, PP comm time: 0.206 months, DP comm time: 2.381 months, Network latency time: 0.061 months
+Number of vertical microbatches: 8, recompute activations: None
+Individual GPU matmul dimensions: 6656, 26624, 1280
+
+d_model: 2.87e+04	 Params: 4.55e+13	 Layers: 384	 Sparsity: 18	 Batch size (tok): 1.13e+08	 Training: 1.38e+28 FLOP, 3.40 months	 Util: 0.660	 N_GPU: 2.36e+06	 (1, 8)=8 TP, 16 PP (v=24), 1024 DP, 18 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 128] TP_m: [1, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 18]
+TP comm time: 1.808 months, PP comm time: 0.129 months, DP comm time: 1.067 months, Network latency time: 0.035 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 28672, 14336, 384
+
+d_model: 3.07e+04	 Params: 5.80e+13	 Layers: 384	 Sparsity: 20	 Batch size (tok): 1.26e+08	 Training: 2.02e+28 FLOP, 4.47 months	 Util: 0.662	 N_GPU: 2.62e+06	 (1, 8)=8 TP, 16 PP (v=24), 1024 DP, 20 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 128] TP_m: [1, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 20]
+TP comm time: 2.224 months, PP comm time: 0.158 months, DP comm time: 1.406 months, Network latency time: 0.040 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 30720, 15360, 384
+
+d_model: 3.28e+04	 Params: 6.60e+13	 Layers: 384	 Sparsity: 20	 Batch size (tok): 1.26e+08	 Training: 2.61e+28 FLOP, 5.77 months	 Util: 0.663	 N_GPU: 2.62e+06	 (1, 8)=8 TP, 16 PP (v=24), 1024 DP, 20 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 128] TP_m: [1, 1] TP_ff: [1, 8] PP: [1, 16] EP: [1, 20]
+TP comm time: 2.699 months, PP comm time: 0.192 months, DP comm time: 1.820 months, Network latency time: 0.046 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 32768, 16384, 384
+
+d_model: 3.69e+04	 Params: 1.17e+14	 Layers: 448	 Sparsity: 24	 Batch size (tok): 1.51e+08	 Training: 6.83e+28 FLOP, 3.40 months	 Util: 0.615	 N_GPU: 1.26e+07	 (4, 8)=32 TP, 32 PP (v=14), 512 DP, 24 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [4, 1] TP_ff: [1, 8] PP: [1, 32] EP: [1, 24]
+TP comm time: 1.557 months, PP comm time: 0.093 months, DP comm time: 1.241 months, Network latency time: 0.132 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 9216, 18432, 384
+
+d_model: 4.10e+04	 Params: 1.92e+14	 Layers: 512	 Sparsity: 28	 Batch size (tok): 2.06e+08	 Training: 1.59e+29 FLOP, 3.63 months	 Util: 0.573	 N_GPU: 2.94e+07	 (8, 8)=64 TP, 64 PP (v=8), 256 DP, 28 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 64] EP: [1, 28]
+TP comm time: 1.692 months, PP comm time: 0.084 months, DP comm time: 0.952 months, Network latency time: 0.182 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 5120, 20480, 448
+
+d_model: 4.51e+04	 Params: 2.33e+14	 Layers: 512	 Sparsity: 28	 Batch size (tok): 2.06e+08	 Training: 2.32e+29 FLOP, 5.18 months	 Util: 0.588	 N_GPU: 2.94e+07	 (4, 16)=64 TP, 32 PP (v=16), 512 DP, 28 EP
+Parallelism partition across the network hierarchy:
+DP: [2, 256] TP_m: [2, 2] TP_ff: [2, 8] PP: [1, 32] EP: [1, 28]
+TP comm time: 2.846 months, PP comm time: 0.111 months, DP comm time: 1.550 months, Network latency time: 0.397 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 11264, 11264, 448
+
+d_model: 4.92e+04	 Params: 3.56e+14	 Layers: 576	 Sparsity: 32	 Batch size (tok): 2.68e+08	 Training: 4.76e+29 FLOP, 4.88 months	 Util: 0.559	 N_GPU: 6.71e+07	 (8, 8)=64 TP, 64 PP (v=9), 512 DP, 32 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [8, 1] TP_ff: [1, 8] PP: [1, 64] EP: [1, 32]
+TP comm time: 1.850 months, PP comm time: 0.091 months, DP comm time: 2.191 months, Network latency time: 0.291 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 6144, 24576, 256
+
+d_model: 5.32e+04	 Params: 4.70e+14	 Layers: 576	 Sparsity: 36	 Batch size (tok): 3.02e+08	 Training: 7.37e+29 FLOP, 4.23 months	 Util: 0.444	 N_GPU: 1.51e+08	 (8, 16)=128 TP, 64 PP (v=9), 512 DP, 36 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [4, 2] TP_ff: [2, 8] PP: [1, 64] EP: [1, 36]
+TP comm time: 1.693 months, PP comm time: 0.058 months, DP comm time: 1.509 months, Network latency time: 0.614 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 6656, 13312, 256
+
+d_model: 5.73e+04	 Params: 6.06e+14	 Layers: 640	 Sparsity: 36	 Batch size (tok): 3.02e+08	 Training: 1.22e+30 FLOP, 4.20 months	 Util: 0.371	 N_GPU: 3.02e+08	 (16, 16)=256 TP, 128 PP (v=5), 256 DP, 36 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [8, 2] TP_ff: [1, 16] PP: [1, 128] EP: [1, 36]
+TP comm time: 2.262 months, PP comm time: 0.045 months, DP comm time: 0.625 months, Network latency time: 0.684 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 3584, 14336, 256
+
+d_model: 6.14e+04	 Params: 7.73e+14	 Layers: 640	 Sparsity: 40	 Batch size (tok): 3.77e+08	 Training: 1.79e+30 FLOP, 4.94 months	 Util: 0.416	 N_GPU: 3.36e+08	 (8, 32)=256 TP, 128 PP (v=5), 256 DP, 40 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [2, 4] TP_ff: [4, 8] PP: [1, 128] EP: [1, 40]
+TP comm time: 2.586 months, PP comm time: 0.055 months, DP comm time: 0.732 months, Network latency time: 0.898 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 7680, 7680, 288
+
+d_model: 6.55e+04	 Params: 8.80e+14	 Layers: 640	 Sparsity: 40	 Batch size (tok): 3.77e+08	 Training: 2.32e+30 FLOP, 6.00 months	 Util: 0.443	 N_GPU: 3.36e+08	 (8, 32)=256 TP, 128 PP (v=5), 256 DP, 40 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 256] TP_m: [2, 4] TP_ff: [4, 8] PP: [1, 128] EP: [1, 40]
+TP comm time: 3.138 months, PP comm time: 0.067 months, DP comm time: 0.948 months, Network latency time: 1.021 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 8192, 8192, 288
+
+d_model: 7.37e+04	 Params: 1.60e+15	 Layers: 768	 Sparsity: 48	 Batch size (tok): 5.03e+08	 Training: 6.42e+30 FLOP, 5.73 months	 Util: 0.268	 N_GPU: 1.61e+09	 (16, 32)=512 TP, 128 PP (v=6), 512 DP, 48 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [4, 4] TP_ff: [2, 16] PP: [1, 128] EP: [1, 48]
+TP comm time: 2.341 months, PP comm time: 0.034 months, DP comm time: 0.986 months, Network latency time: 1.675 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 4608, 9216, 160
+
+d_model: 8.19e+04	 Params: 2.31e+15	 Layers: 768	 Sparsity: 56	 Batch size (tok): 5.87e+08	 Training: 1.14e+31 FLOP, 5.55 months	 Util: 0.210	 N_GPU: 3.76e+09	 (8, 128)=1024 TP, 128 PP (v=6), 512 DP, 56 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [1, 8] TP_ff: [8, 16] PP: [1, 128] EP: [1, 56]
+TP comm time: 2.609 months, PP comm time: 0.024 months, DP comm time: 0.752 months, Network latency time: 1.609 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 10240, 2560, 160
+
+d_model: 9.01e+04	 Params: 3.26e+15	 Layers: 896	 Sparsity: 56	 Batch size (tok): 5.87e+08	 Training: 2.28e+31 FLOP, 5.91 months	 Util: 0.099	 N_GPU: 1.50e+10	 (16, 256)=4096 TP, 128 PP (v=7), 512 DP, 56 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 512] TP_m: [1, 16] TP_ff: [8, 32] PP: [1, 128] EP: [1, 56]
+TP comm time: 2.470 months, PP comm time: 0.011 months, DP comm time: 0.374 months, Network latency time: 2.649 months
+Number of vertical microbatches: 128, recompute activations: None
+Individual GPU matmul dimensions: 5632, 1408, 160
+
+d_model: 9.83e+04	 Params: 4.43e+15	 Layers: 896	 Sparsity: 64	 Batch size (tok): 8.05e+08	 Training: 3.69e+31 FLOP, 5.30 months	 Util: 0.078	 N_GPU: 3.44e+10	 (64, 64)=4096 TP, 64 PP (v=14), 2048 DP, 64 EP
+Parallelism partition across the network hierarchy:
+DP: [1, 2048] TP_m: [8, 8] TP_ff: [1, 64] PP: [1, 64] EP: [1, 64]
+TP comm time: 1.603 months, PP comm time: 0.007 months, DP comm time: 0.885 months, Network latency time: 2.627 months
+Number of vertical microbatches: 64, recompute activations: None
+Individual GPU matmul dimensions: 1536, 6144, 96
+
+d_model: 1.06e+05	 Params: 6.69e+15	 Layers: 1024	 Sparsity: 72	 Batch size (tok): 9.06e+08	 Training: 7.46e+31 FLOP, 5.70 months	 Util: 0.033	 N_GPU: 1.55e+11	 (64, 128)=8192 TP, 32 PP (v=32), 8192 DP, 72 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 1024] TP_m: [1, 64] TP_ff: [1, 128] PP: [1, 32] EP: [1, 72]
+TP comm time: 2.177 months, PP comm time: 0.003 months, DP comm time: 0.354 months, Network latency time: 2.877 months
+Number of vertical microbatches: 32, recompute activations: None
+Individual GPU matmul dimensions: 1664, 3328, 48
+
+d_model: 1.15e+05	 Params: 7.76e+15	 Layers: 1024	 Sparsity: 72	 Batch size (tok): 9.06e+08	 Training: 1.00e+32 FLOP, 5.98 months	 Util: 0.021	 N_GPU: 3.09e+11	 (64, 256)=16384 TP, 16 PP (v=64), 16384 DP, 72 EP
+Parallelism partition across the network hierarchy:
+DP: [8, 2048] TP_m: [1, 64] TP_ff: [1, 256] PP: [1, 16] EP: [1, 72]
+TP comm time: 1.819 months, PP comm time: 0.002 months, DP comm time: 0.476 months, Network latency time: 3.337 months
+Number of vertical microbatches: 16, recompute activations: None
+Individual GPU matmul dimensions: 1792, 1792, 48
+
+Linear scaling for V100 SXM ends at 2.32e+29 FLOP
+Linear scaling for A100 SXM ends at 2.32e+29 FLOP
+Linear scaling for H100 SXM ends at 4.76e+29 FLOP
