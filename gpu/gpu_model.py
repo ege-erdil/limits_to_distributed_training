@@ -187,13 +187,13 @@ A100 = GPU(
 H100_PCIe = GPU(
       name = "H100 PCIe",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.54, 8: 59.01},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 114,
       l2_Bps = 5563e9,
       global_Bps = 2039e9,
                         # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1755e6,
+      max_clock_Hz = 1620e6,
       effective_utilization = 0.55, # empirically observed hardware utilization rate when running a long sequence of big matmuls
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -205,12 +205,12 @@ H100_PCIe = GPU(
 H100_SXM5 = GPU(
       name = "H100 SXM",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
       l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -222,16 +222,12 @@ H100_SXM5 = GPU(
 H100_SXM5_Superpod = GPU(
       name = "H100 SXM Superpod",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
-      l2_Bps = 6441e9,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-                      # A little skeptical of this number as I can achieve at least ~5.7 TB/s on an A10, and that's
-                      # probably not the best case.
-                      #
-                      # Doesn't matter much since we're generally not L2-bound.
+      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7,
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -243,12 +239,12 @@ H100_SXM5_Superpod = GPU(
 H100_SXM5_Zero_Latency = GPU(
       name = "H100 SXM Zero Latency",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
       l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -260,16 +256,12 @@ H100_SXM5_Zero_Latency = GPU(
 H100_SXM5_Superpod_Zero_Latency = GPU(
       name = "H100 SXM Superpod ZL",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
-      l2_Bps = 6441e9,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-                      # A little skeptical of this number as I can achieve at least ~5.7 TB/s on an A10, and that's
-                      # probably not the best case.
-                      #
-                      # Doesn't matter much since we're generally not L2-bound.
+      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7,
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -281,16 +273,12 @@ H100_SXM5_Superpod_Zero_Latency = GPU(
 H100_SXM5_Global_NVLink = GPU(
       name = "H100 SXM Global NVLink",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
-      l2_Bps = 6441e9,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-                      # A little skeptical of this number as I can achieve at least ~5.7 TB/s on an A10, and that's
-                      # probably not the best case.
-                      #
-                      # Doesn't matter much since we're generally not L2-bound.
+      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7,
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -302,16 +290,12 @@ H100_SXM5_Global_NVLink = GPU(
 H100_SXM5_Global_NVLink_Zero_Latency = GPU(
       name = "H100 SXM Global NVLink and ZL",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
-      l2_Bps = 6441e9,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-                      # A little skeptical of this number as I can achieve at least ~5.7 TB/s on an A10, and that's
-                      # probably not the best case.
-                      #
-                      # Doesn't matter much since we're generally not L2-bound.
+      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7,
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -323,16 +307,12 @@ H100_SXM5_Global_NVLink_Zero_Latency = GPU(
 H100_SXM5_Infinite_Network_Zero_Latency = GPU(
       name = "H100 SXM Infinite Network and ZL",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
-      l2_Bps = 6441e9,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-                      # A little skeptical of this number as I can achieve at least ~5.7 TB/s on an A10, and that's
-                      # probably not the best case.
-                      #
-                      # Doesn't matter much since we're generally not L2-bound.
+      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7,
       distributed_shared_memory = True,
       memory_bytes = 8e10,
@@ -344,7 +324,7 @@ H100_SXM5_Infinite_Network_Zero_Latency = GPU(
 H100_SXM5_Superpod_Singleton = GPU(
       name = "H100 SXM Superpod Singleton",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132*256,
       l2_Bps = 6441e9*256,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
@@ -353,7 +333,7 @@ H100_SXM5_Superpod_Singleton = GPU(
                       #
                       # Doesn't matter much since we're generally not L2-bound.
       global_Bps = 3352e9*256,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7,
       distributed_shared_memory = True,
       memory_bytes = 8e10*256,
@@ -365,12 +345,12 @@ H100_SXM5_Superpod_Singleton = GPU(
 H100_Datacenter = GPU(
       name = "H100 SXM Datacenter",
       bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 29.58, 8: 59.16},
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
       l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
       global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1980e6,
+      max_clock_Hz = 1830e6,
       effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
       distributed_shared_memory = True,
       memory_bytes = 8e10,
