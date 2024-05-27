@@ -1,0 +1,6 @@
+name: limits-to-distributed-training
+dependencies:
+  - python=3.11
+  - numpy
+  - matplotlib
+  - sympy

@@ -4,7 +4,14 @@ This is the public repository for the paper "Limits to distributed training".
 
 ## How do I run this?
 
-You can read through the Jupyter notebook "optimal_parallelism.ipynb". Running this notebook end-to-end will currently produce Figure 7 and Figure 8 from the paper, and the notebook explains which setting must be changed to reproduce the other plots and results as well.
+With conda installed, first create and activate the conda environment.
+
+```bash
+conda env create -f environment.yml
+conda activate limits-to-distributed-training
+```
+
+Then you can read through and run the Jupyter notebook "optimal_parallelism.ipynb" in that environment. Running it end-to-end will currently produce Figure 7 and Figure 8 from the paper, and the notebook explains which setting must be changed to reproduce the other plots and results as well.
 
 ## What are the other contents of the repository?
 
