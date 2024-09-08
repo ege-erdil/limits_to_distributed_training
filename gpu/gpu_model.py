@@ -1,5 +1,6 @@
 import numpy as np
 from functools import lru_cache
+from copy import deepcopy
 
 def convert_to_np_array(variable, dtype):
     if not isinstance(variable, np.ndarray):
@@ -12,6 +13,7 @@ ki = 1024
 class GPU:
   def __init__(self, name, bitwidth, flop_per_clock_per_thread, register_bytes_per_processing_block, num_sms, l2_Bps, global_Bps, effective_utilization, max_clock_Hz,
                 distributed_shared_memory, memory_bytes, latency_per_matmul_seconds, network_bandwidths_per_level_Bps, network_latency_per_level_seconds, level_sizes):
+      # Network bandwidths are bidirectional.
 
       self.name = name
       self.bitwidth = bitwidth
@@ -115,21 +117,12 @@ class GPU:
 
   def get_flop_throughput(self, M, N, K, warp_reg_bytes):
       M, N, K = np.broadcast_arrays(M, N, K)
-      n = len(M)
 
       io_intensity_global, io_intensity_l2, io_intensity_shared =\
-      self.io_intensities_gpu(M, N, K, warp_reg_bytes)
+            self.io_intensities_gpu(M, N, K, warp_reg_bytes)
 
-      flop_throughput_bigmk_global = np.minimum(self.flop_per_s, self.global_Bps/io_intensity_global)
-      flop_throughput_bigmk_l2 = np.minimum(self.flop_per_s, self.l2_Bps/io_intensity_l2)
-      flop_throughput_bigmk_shared = np.minimum(self.flop_per_s, self.shared_Bps/io_intensity_shared)
-      flop_throughput_bigmk = np.minimum(np.minimum(flop_throughput_bigmk_global, flop_throughput_bigmk_l2),
-                                        flop_throughput_bigmk_shared)
-
-      return flop_throughput_bigmk
-
-  def matmul_arithmetic_time_seconds(self, m, k, n): # returns how much time a matrix multiplication should take if we achieve perfect FLOP utilization
-    return 2*m*k*n/(self.max_flop_per_s)
+      return np.minimum(np.minimum(self.flop_per_s, self.global_Bps/io_intensity_global),
+                        np.minimum(self.l2_Bps/io_intensity_l2, self.shared_Bps/io_intensity_shared))
 
   @lru_cache(maxsize=None)
   def matmul_time_seconds(self, m, k, n):
@@ -138,15 +131,6 @@ class GPU:
       return self.matmul_time_seconds(max_dim, min_dim, mid_dim)
     else:
       return self.latency_per_matmul_seconds + 2*m*k*n/self.get_flop_throughput(convert_to_np_array(m, dtype=np.int64), convert_to_np_array(n, dtype=np.int64), convert_to_np_array(k, dtype=np.int64), self.useful_register_bytes_per_processing_block)[0]
-
-  def matmul_time_seconds_vectorized(self, m, k, n):
-    # print(np.shape(m), np.shape(k), np.shape(n))
-    dimensions = np.stack((m, k, n))
-    max_val = np.max(dimensions, axis=1)
-    min_val = np.min(dimensions, axis=1)
-    mid_val = np.median(dimensions, axis=1)
-
-    return 2*m*k*n/self.get_flop_throughput(max_val, mid_val, min_val, self.useful_register_bytes_per_processing_block)[0]
 
 V100_SXM2 = GPU(
       name = "V100 SXM",
@@ -161,7 +145,9 @@ V100_SXM2 = GPU(
       distributed_shared_memory = False,
       memory_bytes = 3.2e10,
       latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [3e11, 2.5e10], # 300 GB/s from the V100 NVLink bandwidth, 12.5 GB/s from extrapolating the 2x difference between H100 and A100 one generation backwards
+      # 300 GB/s bidirectional from the V100 NVLink bandwidth, 6.25 GB/s = 50 Gb/s unidirectional (12.5 GB/s bidirectional) from the 4x100Gb/s EDR IB cards on a DGX-1 system
+      # Source: https://images.nvidia.com/content/pdf/dgx1-v100-system-architecture-whitepaper.pdf
+      network_bandwidths_per_level_Bps = [3e11, 1.25e10], 
       network_latency_per_level_seconds = [5e-6, 5e-6],
       level_sizes = (8,)
 )
@@ -180,7 +166,9 @@ A100 = GPU(
       distributed_shared_memory = False,
       memory_bytes = 4e10,
       latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [6e11, 5e10], # 600 GB/s from the A100 NVLink bandwidth, 25 GB/s = 200 Gb/s per GPU from the 8x200Gb/s ConnectX-7 cards on a DGX A100 system
+      # 600 GB/s bidirectional from the A100 NVLink bandwidth, 25 GB/s = 200 Gb/s unidirectional (50 GB/s bidirectional) per GPU from the 8x200Gb/s ConnectX-6 cards on a DGX A100 system
+      # Source: https://download.boston.co.uk/downloads/3/8/6/386750a7-52cd-4872-95e4-7196ab92b51c/DGX%20A100%20System%20Architecture%20Whitepaper.pdf (seems to be removed from Nvidia's web site)
+      network_bandwidths_per_level_Bps = [6e11, 5e10],
       network_latency_per_level_seconds = [5e-6, 5e-6],
       level_sizes = (8,)
 )
@@ -191,17 +179,19 @@ H100_PCIe = GPU(
       register_bytes_per_processing_block = 64*ki,
       num_sms = 114,
       l2_Bps = 5563e9,
-      global_Bps = 2039e9,
-                        # https://resources.nvidia.com/en-us-tensor-core
+      global_Bps = 2039e9, # https://resources.nvidia.com/en-us-tensor-core
       max_clock_Hz = 1620e6,
       effective_utilization = 0.55, # empirically observed hardware utilization rate when running a long sequence of big matmuls
       distributed_shared_memory = True,
       memory_bytes = 8e10,
       latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [9e11, 1e11], # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s per GPU from the 8x400Gb/s ConnectX-7 cards on a DGX H100 system
+      # There's no standard H100 PCIe system like there is a DGX H100, but we assume the same interconnects as the DGX H100 below.
+      # Source: https://www.nvidia.com/content/dam/en-zz/Solutions/gtcs22/data-center/h100/PB-11133-001_v01.pdf
+      network_bandwidths_per_level_Bps = [9e11, 1e11],
       network_latency_per_level_seconds = [5e-6, 5e-6],
       level_sizes = (8,)
 )
+
 H100_SXM5 = GPU(
       name = "H100 SXM",
       bitwidth = 16,
@@ -209,157 +199,60 @@ H100_SXM5 = GPU(
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
       l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
+      global_Bps = 3352e9, # https://resources.nvidia.com/en-us-tensor-core
       max_clock_Hz = 1830e6,
       effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
       distributed_shared_memory = True,
       memory_bytes = 8e10,
       latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [9e11, 1e11], # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s per GPU from the 8x400Gb/s ConnectX-7 VPI cards on a DGX H100 system
+      # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s unidirectional (100 GB/s bidirectional) per GPU from the 8x400Gb/s ConnectX-7 cards on a DGX H100 system
+      # Source: https://nvdam.widen.net/s/95bdhpsgrs/nvidia_h100_tensor_core_gpu_architecture_whitepaper_v1.03
+      network_bandwidths_per_level_Bps = [9e11, 1e11],
       network_latency_per_level_seconds = [5e-6, 5e-6],
       level_sizes = (8,)
 )
-H100_SXM5_Superpod = GPU(
-      name = "H100 SXM Superpod",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [9e11, 1e11],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
-      level_sizes = (256,)
-)
-H100_SXM5_Zero_Latency = GPU(
-      name = "H100 SXM Zero Latency",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 0,
-      network_bandwidths_per_level_Bps = [9e11, 1e11], # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s per GPU from the 8x400Gb/s ConnectX-7 VPI cards on a DGX H100 system
-      network_latency_per_level_seconds = [0, 0],
-      level_sizes = (8,)
-)
-H100_SXM5_Superpod_Zero_Latency = GPU(
-      name = "H100 SXM Superpod ZL",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 0,
-      network_bandwidths_per_level_Bps = [9e11, 1e11],
-      network_latency_per_level_seconds = [0, 0],
-      level_sizes = (256,)
-)
-H100_SXM5_Global_NVLink = GPU(
-      name = "H100 SXM Global NVLink",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [9e11],
-      network_latency_per_level_seconds = [5e-6],
-      level_sizes = ()
-)
-H100_SXM5_Global_NVLink_Zero_Latency = GPU(
-      name = "H100 SXM Global NVLink and ZL",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 0,
-      network_bandwidths_per_level_Bps = [9e11],
-      network_latency_per_level_seconds = [0],
-      level_sizes = ()
-)
-H100_SXM5_Infinite_Network_Zero_Latency = GPU(
-      name = "H100 SXM Infinite Network and ZL",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 0,
-      network_bandwidths_per_level_Bps = [np.inf],
-      network_latency_per_level_seconds = [0],
-      level_sizes = ()
-)
-H100_SXM5_Superpod_Singleton = GPU(
-      name = "H100 SXM Superpod Singleton",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132*256,
-      l2_Bps = 6441e9*256,  # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-                      # A little skeptical of this number as I can achieve at least ~5.7 TB/s on an A10, and that's
-                      # probably not the best case.
-                      #
-                      # Doesn't matter much since we're generally not L2-bound.
-      global_Bps = 3352e9*256,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7,
-      distributed_shared_memory = True,
-      memory_bytes = 8e10*256,
-      latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [5e10*256],
-      network_latency_per_level_seconds = [5e-6, 5e-6, 5e-6],
-      level_sizes = ()
-)
-H100_Datacenter = GPU(
-      name = "H100 SXM Datacenter",
-      bitwidth = 16,
-      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
-      register_bytes_per_processing_block = 64*ki,
-      num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
-      global_Bps = 3352e9,  # https://resources.nvidia.com/en-us-tensor-core
-      max_clock_Hz = 1830e6,
-      effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
-      distributed_shared_memory = True,
-      memory_bytes = 8e10,
-      latency_per_matmul_seconds = 4.5e-6,
-      network_bandwidths_per_level_Bps = [9e11, 1e11, 1e9], # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s per GPU from the 8x400Gb/s ConnectX-7 VPI cards on a DGX H100 system
-                                                            # we assume 1 GB/s per GPU and 1 ms latency between datacenters of 32K GPUs, which is likely too pessimistic
-                                                            # still, it serves as a useful check on what kind of training run is feasible to achieve even with very poor connections between datacenters
-      network_latency_per_level_seconds = [5e-6, 5e-6, 1e-3],
-      level_sizes = (8, 4096)
-)
+
+# Some variations on the H100 SXM5 with different hypothetical network configurations.
+
+H100_SXM5_Superpod = deepcopy(H100_SXM5)
+H100_SXM5_Superpod.name = "H100 SXM Superpod"
+H100_SXM5_Superpod.level_sizes = (256,)
+
+H100_SXM5_Zero_Latency = deepcopy(H100_SXM5)
+H100_SXM5_Zero_Latency.name = "H100 SXM Zero Latency"
+H100_SXM5_Zero_Latency.latency_per_matmul_seconds = 0
+H100_SXM5_Zero_Latency.network_latency_per_level_seconds = [0, 0]
+
+H100_SXM5_Superpod_Zero_Latency = deepcopy(H100_SXM5_Zero_Latency)
+H100_SXM5_Superpod_Zero_Latency.name = "H100 SXM Superpod ZL"
+H100_SXM5_Superpod_Zero_Latency.level_sizes = (256,)
+
+H100_SXM5_Global_NVLink = deepcopy(H100_SXM5)
+H100_SXM5_Global_NVLink.name = "H100 SXM Global NVLink"
+H100_SXM5_Global_NVLink.network_bandwidths_per_level_Bps = [9e11]
+H100_SXM5_Global_NVLink.network_latency_per_level_seconds = [5e-6]
+H100_SXM5_Global_NVLink.level_sizes = ()
+
+H100_SXM5_Global_NVLink_Zero_Latency = deepcopy(H100_SXM5)
+H100_SXM5_Global_NVLink_Zero_Latency.name = "H100 SXM Global NVLink and ZL"
+H100_SXM5_Global_NVLink_Zero_Latency.latency_per_matmul_seconds = 0
+H100_SXM5_Global_NVLink_Zero_Latency.network_bandwidths_per_level_Bps = [9e11]
+H100_SXM5_Global_NVLink_Zero_Latency.network_latency_per_level_seconds = [0]
+H100_SXM5_Global_NVLink_Zero_Latency.level_sizes = ()
+
+H100_SXM5_Infinite_Network_Zero_Latency = deepcopy(H100_SXM5_Global_NVLink_Zero_Latency)
+H100_SXM5_Infinite_Network_Zero_Latency.name = "H100 SXM Infinite Network and ZL"
+H100_SXM5_Infinite_Network_Zero_Latency.network_bandwidths_per_level_Bps = [np.inf]
+
+H100_SXM5_Superpod_Singleton = deepcopy(H100_SXM5)
+H100_SXM5_Superpod_Singleton.name = "H100 SXM Superpod Singleton"
+H100_SXM5_Superpod_Singleton.num_sms *= 256
+H100_SXM5_Superpod_Singleton.l2_Bps *= 256
+H100_SXM5_Superpod_Singleton.global_Bps *= 256
+H100_SXM5_Superpod_Singleton.memory_bytes *= 256
+H100_SXM5_Superpod_Singleton.network_bandwidths_per_level_Bps = [5e10*256]
+H100_SXM5_Superpod_Singleton.network_latency_per_level_seconds = [5e-6]
+H100_SXM5_Superpod_Singleton.level_sizes = ()
+
 gpu_list = [V100_SXM2, A100, H100_SXM5, H100_SXM5_Superpod, H100_SXM5_Superpod_Singleton]
 gpu_dict = {gpu.name: gpu for gpu in gpu_list}
