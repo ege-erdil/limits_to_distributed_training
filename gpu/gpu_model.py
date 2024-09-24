@@ -190,19 +190,21 @@ class GPU:
 
     # Each element of the righthand side activations X (or X^T, or activation
     # gradients ∂L/∂Y) of size d2xb will have to be loaded from the higher to
-    # lower level once for each big row of weight tiles, and transferred on the
-    # distributed memory network for each small row of weight tiles beyond the
-    # first.
+    # lower level once for each big row of weight tiles, and multicast (NVIDIA
+    # patent US20230315655A1 suggests DSMEM supports this) on the distributed
+    # memory network for each small row of weight tiles beyond the first,
+    # resulting in one tx and num_small_rows - 1 rx.
     interlevel_io_bytes += num_big_rows*righthand_activation_bytes
-    dist_io_bytes += (num_small_rows - 1)*righthand_activation_bytes
+    if num_small_rows > 1:
+        dist_io_bytes += num_small_rows*righthand_activation_bytes
 
     if for_weight_grads:
         # Each element of the lefthand side activation gradients ∂L/∂Y of size
-        # d1xb will have to be loaded from the higher to lower level once for
-        # each column of weight tiles, and transferred on the distributed memory
-        # network for each column of weight tiles beyond the first.
+        # d1xb will have to be loaded in a symmetric pattern as the righthand
+        # side activations X above.
         interlevel_io_bytes += num_big_cols*lefthand_activation_bytes
-        dist_io_bytes += (num_small_cols - 1)*lefthand_activation_bytes
+        if num_small_cols > 1:
+            dist_io_bytes += num_small_cols*lefthand_activation_bytes
     else:
         # Each element of the lefthand side output activations Y (or output
         # activation gradients ∂L/∂X) of size d1xb will have to be
@@ -213,12 +215,12 @@ class GPU:
         # involves a load from the higher to lower level to read the previously
         # accumulated value (except the very first time), then a store from the
         # lower to higher level to write the newly accumulated value.
-        dist_io_bytes += (num_small_cols - 1)*lefthand_activation_bytes
+    
+        # The factor of 2 accounts for tx and rx in the reduce-scatter.
+        dist_io_bytes += 2*(num_small_cols - 1)*lefthand_activation_bytes
         interlevel_io_bytes += (2*num_big_cols - 1)*lefthand_activation_bytes
 
-    # Effective data movement on the distributed network has to be doubled
-    # to count both sides.
-    return interlevel_io_bytes, 2*dist_io_bytes
+    return interlevel_io_bytes, dist_io_bytes
 
 V100_SXM2 = GPU(
       name = "V100 SXM",
