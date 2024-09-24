@@ -9,9 +9,11 @@ def convert_to_np_array(variable, dtype):
         return variable
 
 ki = 1024
+Mi = 1024*1024
+tensor_core_chunk_size = 16 # TODO: should perhaps be GPU-specific
 
 class GPU:
-  def __init__(self, name, bitwidth, flop_per_clock_per_thread, register_bytes_per_processing_block, num_sms, l2_Bps, global_Bps, effective_utilization, max_clock_Hz,
+  def __init__(self, name, bitwidth, flop_per_clock_per_thread, register_bytes_per_processing_block, num_sms, l2_Bps, l2_bytes, global_Bps, effective_utilization, max_clock_Hz,
                 distributed_shared_memory, memory_bytes, latency_per_matmul_seconds, network_bandwidths_per_level_Bps, network_latency_per_level_seconds, level_sizes):
       # Network bandwidths are bidirectional.
 
@@ -21,6 +23,7 @@ class GPU:
       self.register_bytes_per_processing_block = register_bytes_per_processing_block
       self.num_sms = num_sms
       self.l2_Bps = l2_Bps
+      self.l2_bytes = l2_bytes
       self.global_Bps = global_Bps
       self.max_clock_Hz = max_clock_Hz
       self.clock_Hz = max_clock_Hz*effective_utilization
@@ -32,6 +35,7 @@ class GPU:
 
       self.bytewidth = self.bitwidth/8
       self.useful_register_bytes_per_processing_block = 0.75*self.register_bytes_per_processing_block
+      self.useful_l2_bytes = 0.75*self.l2_bytes
       self.shared_Bps = 32*4*self.num_sms*self.clock_Hz # 32 banks per SM, 4 bytes per cycle per bank
 
       self.num_threads = 128*self.num_sms
@@ -45,92 +49,176 @@ class GPU:
   def __hash__(self):
       return hash(self.name)
 
-  def shape(self, M, N, warp_reg_bytes):
-      # We always assume all SMs are being used. One might think for small enough matrices
-      # one would instead use fewer SMs to get more L2 bandwidth per SM, but total L2
-      # bandwidth seems to be close to linear in the number of SMs, so this doesn't help.
-      #
-      # Source: my own experiments on an A10 (l2_bandwidth.cu) as well as
-      # https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
-      assert np.all(M >= N)
-      num_warps = 4*self.num_sms
-
-      warp_area = np.minimum(M*N/num_warps, warp_reg_bytes/self.bytewidth)
-      sm_area = 4*warp_area
-      combined_area = self.num_sms*sm_area
-
-      # These are optimistic shapes, ignoring discrete constraints
-      # and address alignment.
-      N_warp = np.minimum(N, np.sqrt(warp_area.astype(float)))
-      M_warp = warp_area/N_warp
-
-      N_sm = np.minimum(N, np.sqrt(sm_area.astype(float)))
-      M_sm = sm_area/N_sm
-
-      N_combined = np.minimum(N, np.sqrt(combined_area.astype(float)))
-      M_combined = combined_area/N_combined
-
-      return M_combined, N_combined, M_sm, N_sm, M_warp, N_warp
-
-  def io_intensity(self, M, N, K):
-      return self.bytewidth/2 * (1/M + 1/N + 1/K)
-
-  def io_intensities(self, M, N, M_combined, N_combined, M_sm, N_sm, M_warp, N_warp, K):
-      # Load M × K and K × N from global memory, then store the result
-      # tile of size M × N.
-      # TODO: Currently assuming an infinite L2 cache. In reality we should
-      #       determine M_L2 and N_L2 and use those instead of M and N.
-      ioint_global = self.io_intensity(M, N, K)
-
-      if self.dsmem:
-          # In this case, once a single SM has the data, we never have to hit
-          # L2 again. So L2 bandwidth = global bandwidth.
-          #
-          # TODO: Not clear if DSMEM supports a multicast mechanism. If so, then
-          #       transmission is ~free. If not, then it's best to think of DSMEM
-          #       + L2 as a combined pool of bandwidth for communication between
-          #       SMs once it's already loaded from global memory. We currently
-          #       assume multicast.
-          #
-          # p. 10 of https://docs.nvidia.com/cuda/pdf/Hopper_Tuning_Guide.pdf:
-          # "Distributed Shared Memory can be used by an SM simultaneously with L2
-          # cache accesses. This can benefit applications that need to communicate
-          # data between SMs by utilizing the combined bandwidth of both
-          # distributed shared memory and L2."
-          #
-          # This implies the DSMEM network doesn't support full bisection bandwidth,
-          # however it's not clear if this means it doesn't support multicast.
-          ioint_l2 = self.io_intensity(M_combined, N_combined, K)
-      else:
-          # In this case, separate hits to L2 are required for each SM.
-          ioint_l2 = self.io_intensity(M_sm, N_sm, K)
-
-      # Store part of A and B from global into shared, then load from shared for each warp.
-      # We treat K as infinite because it's not necessary to write the result back to shared.
-      ioint_shared = self.io_intensity(M_sm, N_sm, np.inf) + self.io_intensity(M_warp, N_warp, np.inf)
-
-      return np.broadcast_arrays(ioint_global, ioint_l2, ioint_shared)
-
-  def io_intensities_gpu(self, M, N, K, warp_reg_bytes):
-      M_combined, N_combined, M_sm, N_sm, M_warp, N_warp = self.shape(M, N, warp_reg_bytes)
-      return self.io_intensities(M, N, M_combined, N_combined, M_sm, N_sm, M_warp, N_warp, K)
-
-  def get_flop_throughput(self, M, N, K, warp_reg_bytes):
-      M, N, K = np.broadcast_arrays(M, N, K)
-
-      io_intensity_global, io_intensity_l2, io_intensity_shared =\
-            self.io_intensities_gpu(M, N, K, warp_reg_bytes)
-
-      return np.minimum(np.minimum(self.flop_per_s, self.global_Bps/io_intensity_global),
-                        np.minimum(self.l2_Bps/io_intensity_l2, self.shared_Bps/io_intensity_shared))
-
   @lru_cache(maxsize=None)
-  def matmul_time_seconds(self, m, k, n):
-    if not (m >= n and n >= k): # if not m >= n >= k, reorder the inputs and call the function again; we don't stay in the same function scope so that lru_cache can cache the value for all permutations
-      min_dim, mid_dim, max_dim = sorted([m, k, n])
-      return self.matmul_time_seconds(max_dim, min_dim, mid_dim)
+  def matmul_time_seconds(self, d1, d2, b, for_weight_grads=False):
+    """The time for a matrix multiplication either of:
+
+      - Weights of shape d1xd2 by activations of shape d2xb, to compute
+          Y = WX,
+
+      - Weights transposed to shape d1xd2 by activation gradients of shape d2xb,
+        to compute
+          ∂L/∂X = W^T(∂L/∂Y),
+
+       or
+
+      - Activation gradients of shape d1xb by activations transposed to shape
+        bxd2, to compute
+          ∂L/∂W = (∂L/∂Y)X^T,
+        in which case for_weight_grads is set to True.
+
+    The microbatch size b will normally be the smallest dimension, since
+    pipeline and data parallelism compete to slice this dimension finely. Thus
+    we assume the kernel is tiled at all levels of the memory hierarchy
+    according to the weight matrix dimensions d1xd2 (even if this is not the
+    matmul output surface) to permit more parallelism across SMs.
+
+    We also assume that the weights, along with their gradients, are permanently
+    stored (except for data-parallel all-reduces, not modeled here) at the
+    lowest level (among global, L2 cache, and registers) of the memory hierarchy
+    in which they can fit, with no data movement required higher up."""
+    # Data movement between global memory and L2 cache.
+    global_tofrom_l2_io_bytes, _ = self._matmul_io_bytes_between_levels(
+        d1, d2, b,
+        self.useful_l2_bytes,
+        for_weight_grads=for_weight_grads)
+
+    # Data movement between L2 cache and L1 cache/shared memory (weight matrix
+    # tiles are assumed stored in registers for computation; L1 cache/shared
+    # memory is just used as a transient buffer). If distributed shared memory
+    # is present, this reduces the burden on L2 for redundant loads or stores by
+    # multiple SMs.
+    l2_tofrom_sm_io_bytes, dsmem_io_bytes = self._matmul_io_bytes_between_levels(
+        d1, d2, b,
+        4*self.useful_register_bytes_per_processing_block,
+        num_concurrent=self.num_sms,
+        distributed_memory=self.dsmem,
+        for_weight_grads=for_weight_grads)
+
+    # Data movement between L1 cache/shared memory and registers.
+    sm_tofrom_registers_io_bytes, _ = self._matmul_io_bytes_between_levels(
+        d1, d2, b,
+        self.useful_register_bytes_per_processing_block,
+        num_concurrent=4*self.num_sms,
+        for_weight_grads=for_weight_grads)
+
+    global_io_bytes = global_tofrom_l2_io_bytes
+    l2_io_bytes = global_tofrom_l2_io_bytes + l2_tofrom_sm_io_bytes
+    sm_io_bytes = l2_tofrom_sm_io_bytes + dsmem_io_bytes + sm_tofrom_registers_io_bytes
+
+    # Pad the dimensions to the tensor core shape before computing effective
+    # FLOP.
+    d1_chunks = np.ceil(d1/tensor_core_chunk_size)
+    d2_chunks = np.ceil(d2/tensor_core_chunk_size)
+    b_chunks = np.ceil(b/tensor_core_chunk_size)
+    flop = 2*d1_chunks*d2_chunks*b_chunks*tensor_core_chunk_size**3
+
+    # Calculate durations as the maximum of all data movement and arithmetic
+    # times, plus a fixed latency.
+    time_s = np.maximum(np.maximum(global_io_bytes/self.global_Bps, l2_io_bytes/self.l2_Bps),
+                        np.maximum(sm_io_bytes/self.shared_Bps, flop/self.flop_per_s))
+    time_s += self.latency_per_matmul_seconds
+    return time_s
+
+  def _tile(self, m, n, max_tile_bytes):
+      """Ignoring most discrete constraints (to avoid combinatorial search),
+      find the minimum total tile count such that the tiles fit in the lower
+      level, and then the closest to a square we can make the tile shape. Then
+      return the resulting number of tile rows and columns. This is used to
+      determine the number of redundant accesses to the higher level for each
+      activation (or activation gradient) value."""
+      words = m*n
+      bytes = words*self.bytewidth
+      tile_count = np.ceil(bytes/max_tile_bytes)
+      words_per_tile = words/tile_count
+      tile_m = np.maximum(np.minimum(m, np.sqrt(words_per_tile)),
+                          words_per_tile/n)
+      tile_n = words_per_tile/tile_m
+      return m/tile_m, n/tile_n
+
+  def _matmul_io_bytes_between_levels(
+          self, d1, d2, b,
+          max_tile_bytes, num_concurrent=1,
+          distributed_memory=False,
+          for_weight_grads=False):
+    """The IO volume between adjacent levels of the memory hierarchy for a
+    matrix multiplication with shapes specified by d1, d2, b, and
+    for_weight_grads as in matmul_time_seconds. There are num_concurrent
+    instances (e.g. SMs or processing blocks) of tiles being processed, each
+    handling a weight matrix tile of at most max_tile_bytes.
+
+    If distributed_memory is True, this acts like Hopper's distributed shared
+    memory, allowing redundant accesses to the higher level to be avoided (e.g.
+    avoiding redundant loads from L2 cache to different SMs, since the SMs can
+    communicate amongst each other). In this case, a second return value is
+    included for the IO volume on the distributed network. Otherwise the second
+    return value is 0."""
+    weight_words = d1*d2
+    weight_bytes = weight_words*self.bytewidth
+    lefthand_activation_bytes = d1*b*self.bytewidth
+    righthand_activation_bytes = d2*b*self.bytewidth
+
+    weight_grad_bytes = weight_bytes
+    weights_and_grads_fit_in_lower_level = \
+        weight_bytes + weight_grad_bytes <= max_tile_bytes*num_concurrent
+
+    # Determine the effective tiling shape for the inter-level data movement and
+    # the within-level data movement for the distributed network.
+    if distributed_memory:
+        num_big_rows, num_big_cols = self._tile(d1, d2, max_tile_bytes*num_concurrent)
+        num_small_rows, num_small_cols = self._tile(d1, d2, max_tile_bytes)
     else:
-      return self.latency_per_matmul_seconds + 2*m*k*n/self.get_flop_throughput(convert_to_np_array(m, dtype=np.int64), convert_to_np_array(n, dtype=np.int64), convert_to_np_array(k, dtype=np.int64), self.useful_register_bytes_per_processing_block)[0]
+        num_big_rows, num_big_cols = self._tile(d1, d2, max_tile_bytes)
+        num_small_rows, num_small_cols = 1, 1
+
+    # Now figure out the required total IO volume both between the hierarchy
+    # levels, as well as on the distributed network at the lower level if it
+    # exists.
+    interlevel_io_bytes = 0
+    dist_io_bytes = 0
+    if not weights_and_grads_fit_in_lower_level:
+        if for_weight_grads:
+            # The previously accumulated weight gradients will have to be loaded
+            # (in tile-sized chunks) from the higher to lower level, and then
+            # the newly accumulated weight gradients will have to be stored back
+            # (also in tile-sized chunks) to the higher level.
+            interlevel_io_bytes += 2*weight_grad_bytes
+        else:
+            # The weights will have to be loaded (in tile-sized chunks) from
+            # the higher to lower level.
+            interlevel_io_bytes += weight_bytes
+
+    # Each element of the righthand side activations X (or X^T, or activation
+    # gradients ∂L/∂Y) of size d2xb will have to be loaded from the higher to
+    # lower level once for each big row of weight tiles, and transferred on the
+    # distributed memory network for each small row of weight tiles beyond the
+    # first.
+    interlevel_io_bytes += num_big_rows*righthand_activation_bytes
+    dist_io_bytes += (num_small_rows - 1)*righthand_activation_bytes
+
+    if for_weight_grads:
+        # Each element of the lefthand side activation gradients ∂L/∂Y of size
+        # d1xb will have to be loaded from the higher to lower level once for
+        # each column of weight tiles, and transferred on the distributed memory
+        # network for each column of weight tiles beyond the first.
+        interlevel_io_bytes += num_big_cols*lefthand_activation_bytes
+        dist_io_bytes += (num_small_cols - 1)*lefthand_activation_bytes
+    else:
+        # Each element of the lefthand side output activations Y (or output
+        # activation gradients ∂L/∂X) of size d1xb will have to be accumulated
+        # once for each big column of weight tiles, and reduce-scattered on the
+        # distributed memory network across small columns of weight tiles. The
+        # former involves a load from the higher to lower level to read the
+        # previously accumulated value (except the very first time), then a
+        # store from the lower to higher level to write the newly accumulated
+        # value. The latter involves a single transfer on the distributed memory
+        # network for each small column beyond the first.
+        interlevel_io_bytes += (2*num_big_cols - 1)*lefthand_activation_bytes
+        dist_io_bytes += (num_small_cols - 1)*lefthand_activation_bytes
+
+    # Effective data movement on the distributed network has to be doubled
+    # to count both sides.
+    return interlevel_io_bytes, 2*dist_io_bytes
 
 V100_SXM2 = GPU(
       name = "V100 SXM",
@@ -139,6 +227,7 @@ V100_SXM2 = GPU(
       register_bytes_per_processing_block = 64*ki,
       num_sms = 80,
       l2_Bps = 2155e9,
+      l2_bytes = 6*Mi,
       global_Bps = 900e9,
       max_clock_Hz = 1533e6,
       effective_utilization = 0.9, # empirically observed hardware utilization rate when running a long sequence of big matmuls
@@ -160,6 +249,7 @@ A100 = GPU(
       # l2_Bps = 7050e9 # partitioned on Ampere, but we don't model this
       # profiled by https://chipsandcheese.com/2023/07/02/nvidias-h100-funny-l2-and-tons-of-bandwidth/
       l2_Bps = 5603e9,
+      l2_bytes = 40*Mi,
       global_Bps = 1555e9,
       max_clock_Hz = 1410e6,
       effective_utilization = 0.85, # empirically observed hardware utilization rate when running a long sequence of big matmuls
@@ -179,6 +269,7 @@ H100_PCIe = GPU(
       register_bytes_per_processing_block = 64*ki,
       num_sms = 114,
       l2_Bps = 5563e9,
+      l2_bytes = 50*Mi,
       global_Bps = 2039e9, # https://resources.nvidia.com/en-us-tensor-core
       max_clock_Hz = 1620e6,
       effective_utilization = 0.55, # empirically observed hardware utilization rate when running a long sequence of big matmuls
@@ -198,7 +289,8 @@ H100_SXM5 = GPU(
       flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
       register_bytes_per_processing_block = 64*ki,
       num_sms = 132,
-      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much.
+      l2_Bps = 6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much due to DSMEM.
+      l2_bytes = 50*Mi,
       global_Bps = 3352e9, # https://resources.nvidia.com/en-us-tensor-core
       max_clock_Hz = 1830e6,
       effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
