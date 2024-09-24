@@ -122,11 +122,9 @@ class GPU:
 
   def _tile(self, m, n, max_tile_bytes):
       """Ignoring most discrete constraints (to avoid combinatorial search),
-      find the minimum total tile count such that the tiles fit in the lower
-      level, and then the closest to a square we can make the tile shape. Then
-      return the resulting number of tile rows and columns. This is used to
-      determine the number of redundant accesses to the higher level for each
-      activation (or activation gradient) value."""
+      find the minimum total tile count such that the tiles fit in the given
+      capacity, and then the closest to a square we can make the tile shape.
+      Then return the resulting number of tile rows and columns."""
       words = m*n
       bytes = words*self.bytewidth
       tile_count = np.ceil(bytes/max_tile_bytes)
@@ -163,7 +161,9 @@ class GPU:
         weight_bytes + weight_grad_bytes <= max_tile_bytes*num_concurrent
 
     # Determine the effective tiling shape for the inter-level data movement and
-    # the within-level data movement for the distributed network.
+    # the within-level data movement for the distributed network. This is used
+    # to determine the number of redundant accesses for each activation (or
+    # activation gradient) value.
     if distributed_memory:
         num_big_rows, num_big_cols = self._tile(d1, d2, max_tile_bytes*num_concurrent)
         num_small_rows, num_small_cols = self._tile(d1, d2, max_tile_bytes)
@@ -205,16 +205,16 @@ class GPU:
         dist_io_bytes += (num_small_cols - 1)*lefthand_activation_bytes
     else:
         # Each element of the lefthand side output activations Y (or output
-        # activation gradients ∂L/∂X) of size d1xb will have to be accumulated
-        # once for each big column of weight tiles, and reduce-scattered on the
-        # distributed memory network across small columns of weight tiles. The
-        # former involves a load from the higher to lower level to read the
-        # previously accumulated value (except the very first time), then a
-        # store from the lower to higher level to write the newly accumulated
-        # value. The latter involves a single transfer on the distributed memory
-        # network for each small column beyond the first.
-        interlevel_io_bytes += (2*num_big_cols - 1)*lefthand_activation_bytes
+        # activation gradients ∂L/∂X) of size d1xb will have to be
+        # reduce-scattered on the distributed memory network across small
+        # columns of weight tiles, and accumulated once for each big column of
+        # weight tiles. The former involves a single transfer on the distributed
+        # memory network for each small column beyond the first. The latter
+        # involves a load from the higher to lower level to read the previously
+        # accumulated value (except the very first time), then a store from the
+        # lower to higher level to write the newly accumulated value.
         dist_io_bytes += (num_small_cols - 1)*lefthand_activation_bytes
+        interlevel_io_bytes += (2*num_big_cols - 1)*lefthand_activation_bytes
 
     # Effective data movement on the distributed network has to be doubled
     # to count both sides.
