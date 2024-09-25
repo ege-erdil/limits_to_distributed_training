@@ -78,6 +78,8 @@ class GPU:
     lowest level (among global, L2 cache, and registers) of the memory hierarchy
     in which they can fit, with no data movement required higher up."""
     # Data movement between global memory and L2 cache.
+    # TODO: Properly handle the case where L2 cache is smaller than total
+    # register capacity.
     global_tofrom_l2_io_bytes, _ = self._matmul_io_bytes_between_levels(
         d1, d2, b,
         self.useful_l2_bytes,
