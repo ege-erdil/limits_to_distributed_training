@@ -10,7 +10,7 @@ def convert_to_np_array(variable, dtype):
 
 ki = 1024
 Mi = 1024*1024
-tensor_core_chunk_size = 16 # TODO: should perhaps be GPU-specific
+tensor_core_chunk_size = 8
 
 class GPU:
   def __init__(self, name, bitwidth, flop_per_clock_per_thread, register_bytes_per_processing_block, num_sms, l2_Bps, l2_bytes, global_Bps, effective_utilization, max_clock_Hz,
@@ -67,22 +67,21 @@ class GPU:
           ∂L/∂W = (∂L/∂Y)X^T,
         in which case for_weight_grads is set to True.
 
-    The microbatch size b will normally be the smallest dimension, since
-    pipeline and data parallelism compete to slice this dimension finely. Thus
-    we assume the kernel is tiled at all levels of the memory hierarchy
-    according to the weight matrix dimensions d1xd2 (even if this is not the
-    matmul output surface) to permit more parallelism across SMs.
+    The nanobatch size b will normally be the smallest dimension, since pipeline
+    and data parallelism compete to slice this dimension finely. Thus we assume
+    the kernel is tiled at all levels of the memory hierarchy according to the
+    weight matrix dimensions d1xd2 (even if this is not the matmul output
+    surface) to permit more parallelism across SMs.
 
     We also assume that the weights, along with their gradients, are permanently
     stored (except for data-parallel all-reduces, not modeled here) at the
     lowest level (among global, L2 cache, and registers) of the memory hierarchy
     in which they can fit, with no data movement required higher up."""
     # Data movement between global memory and L2 cache.
-    # TODO: Properly handle the case where L2 cache is smaller than total
-    # register capacity.
     global_tofrom_l2_io_bytes, _ = self._matmul_io_bytes_between_levels(
         d1, d2, b,
-        self.useful_l2_bytes,
+        max(self.useful_l2_bytes, # Can store the weight + gradient tiles either in L2 or the registers.
+            4*self.useful_register_bytes_per_processing_block),
         for_weight_grads=for_weight_grads)
 
     # Data movement between L2 cache and L1 cache/shared memory (weight matrix
@@ -335,6 +334,12 @@ H100_SXM5_Global_NVLink_Zero_Latency.latency_per_matmul_seconds = 0
 H100_SXM5_Global_NVLink_Zero_Latency.network_bandwidths_per_level_Bps = [9e11]
 H100_SXM5_Global_NVLink_Zero_Latency.network_latency_per_level_seconds = [0]
 H100_SXM5_Global_NVLink_Zero_Latency.level_sizes = ()
+
+H100_SXM5_Infinite_Network = deepcopy(H100_SXM5)
+H100_SXM5_Infinite_Network.name = "H100 SXM Infinite Network"
+H100_SXM5_Infinite_Network.network_bandwidths_per_level_Bps = [np.inf]
+H100_SXM5_Infinite_Network.network_latency_per_level_seconds = [0]
+H100_SXM5_Infinite_Network.level_sizes = ()
 
 H100_SXM5_Infinite_Network_Zero_Latency = deepcopy(H100_SXM5_Global_NVLink_Zero_Latency)
 H100_SXM5_Infinite_Network_Zero_Latency.name = "H100 SXM Infinite Network and ZL"
