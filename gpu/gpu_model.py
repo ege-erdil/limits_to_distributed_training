@@ -237,10 +237,10 @@ V100_SXM2 = GPU(
       distributed_shared_memory = False,
       memory_bytes = 3.2e10,
       latency_per_matmul_seconds = 4.5e-6,
-      # 300 GB/s bidirectional from the V100 NVLink bandwidth, 6.25 GB/s = 50 Gb/s unidirectional (12.5 GB/s bidirectional) from the 4x100Gb/s EDR IB cards on a DGX-1 system
+      # 300 GB/s bidirectional from the V100 NVLink bandwidth, 6.25 GB/s = 50 Gb/s unidirectional (12.5 GB/s bidirectional) per GPU from the 4x100Gb/s EDR IB cards on a DGX-1 system
       # Source: https://images.nvidia.com/content/pdf/dgx1-v100-system-architecture-whitepaper.pdf
       network_bandwidths_per_level_Bps = [3e11, 1.25e10], 
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 A100 = GPU(
@@ -262,7 +262,7 @@ A100 = GPU(
       # 600 GB/s bidirectional from the A100 NVLink bandwidth, 25 GB/s = 200 Gb/s unidirectional (50 GB/s bidirectional) per GPU from the 8x200Gb/s ConnectX-6 cards on a DGX A100 system
       # Source: https://download.boston.co.uk/downloads/3/8/6/386750a7-52cd-4872-95e4-7196ab92b51c/DGX%20A100%20System%20Architecture%20Whitepaper.pdf (seems to be removed from Nvidia's web site)
       network_bandwidths_per_level_Bps = [6e11, 5e10],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 H100_PCIe = GPU(
@@ -282,7 +282,7 @@ H100_PCIe = GPU(
       # There's no standard H100 PCIe system like there is a DGX H100, but we assume the same interconnects as the DGX H100 below.
       # Source: https://www.nvidia.com/content/dam/en-zz/Solutions/gtcs22/data-center/h100/PB-11133-001_v01.pdf
       network_bandwidths_per_level_Bps = [9e11, 1e11],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 
@@ -303,7 +303,7 @@ H100_SXM5 = GPU(
       # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s unidirectional (100 GB/s bidirectional) per GPU from the 8x400Gb/s ConnectX-7 cards on a DGX H100 system
       # Source: https://nvdam.widen.net/s/95bdhpsgrs/nvidia_h100_tensor_core_gpu_architecture_whitepaper_v1.03
       network_bandwidths_per_level_Bps = [9e11, 1e11],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 
@@ -311,7 +311,9 @@ H100_SXM5 = GPU(
 
 H100_SXM5_Superpod = deepcopy(H100_SXM5)
 H100_SXM5_Superpod.name = "H100 SXM Superpod"
-H100_SXM5_Superpod.level_sizes = (256,)
+H100_SXM5_Superpod.network_bandwidths_per_level_Bps = [9e11, 4.5e11, 1e11]
+H100_SXM5_Superpod.network_latency_per_level_seconds = [1.125e-6, 1.125e-6, 1.125e-6]
+H100_SXM5_Superpod.level_sizes = (8,32)
 
 H100_SXM5_Zero_Latency = deepcopy(H100_SXM5)
 H100_SXM5_Zero_Latency.name = "H100 SXM Zero Latency"
@@ -325,7 +327,7 @@ H100_SXM5_Superpod_Zero_Latency.level_sizes = (256,)
 H100_SXM5_Global_NVLink = deepcopy(H100_SXM5)
 H100_SXM5_Global_NVLink.name = "H100 SXM Global NVLink"
 H100_SXM5_Global_NVLink.network_bandwidths_per_level_Bps = [9e11]
-H100_SXM5_Global_NVLink.network_latency_per_level_seconds = [5e-6]
+H100_SXM5_Global_NVLink.network_latency_per_level_seconds = [1.125e-6]
 H100_SXM5_Global_NVLink.level_sizes = ()
 
 H100_SXM5_Global_NVLink_Zero_Latency = deepcopy(H100_SXM5)
@@ -334,12 +336,6 @@ H100_SXM5_Global_NVLink_Zero_Latency.latency_per_matmul_seconds = 0
 H100_SXM5_Global_NVLink_Zero_Latency.network_bandwidths_per_level_Bps = [9e11]
 H100_SXM5_Global_NVLink_Zero_Latency.network_latency_per_level_seconds = [0]
 H100_SXM5_Global_NVLink_Zero_Latency.level_sizes = ()
-
-H100_SXM5_Infinite_Network = deepcopy(H100_SXM5)
-H100_SXM5_Infinite_Network.name = "H100 SXM Infinite Network"
-H100_SXM5_Infinite_Network.network_bandwidths_per_level_Bps = [np.inf]
-H100_SXM5_Infinite_Network.network_latency_per_level_seconds = [0]
-H100_SXM5_Infinite_Network.level_sizes = ()
 
 H100_SXM5_Infinite_Network_Zero_Latency = deepcopy(H100_SXM5_Global_NVLink_Zero_Latency)
 H100_SXM5_Infinite_Network_Zero_Latency.name = "H100 SXM Infinite Network and ZL"
@@ -352,7 +348,7 @@ H100_SXM5_Superpod_Singleton.l2_Bps *= 256
 H100_SXM5_Superpod_Singleton.global_Bps *= 256
 H100_SXM5_Superpod_Singleton.memory_bytes *= 256
 H100_SXM5_Superpod_Singleton.network_bandwidths_per_level_Bps = [5e10*256]
-H100_SXM5_Superpod_Singleton.network_latency_per_level_seconds = [5e-6]
+H100_SXM5_Superpod_Singleton.network_latency_per_level_seconds = [1.125e-6]
 H100_SXM5_Superpod_Singleton.level_sizes = ()
 
 gpu_list = [V100_SXM2, A100, H100_SXM5, H100_SXM5_Superpod, H100_SXM5_Superpod_Singleton]
