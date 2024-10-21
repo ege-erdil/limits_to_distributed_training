@@ -315,14 +315,14 @@ H100_SXM5_Superpod.network_bandwidths_per_level_Bps = [9e11, 4.5e11, 1e11]
 H100_SXM5_Superpod.network_latency_per_level_seconds = [1.125e-6, 1.125e-6, 1.125e-6]
 H100_SXM5_Superpod.level_sizes = (8,32)
 
-H100_SXM5_Zero_Latency = deepcopy(H100_SXM5)
-H100_SXM5_Zero_Latency.name = "H100 SXM Zero Latency"
-H100_SXM5_Zero_Latency.latency_per_matmul_seconds = 0
-H100_SXM5_Zero_Latency.network_latency_per_level_seconds = [0, 0]
+H100_SXM5_Low_Latency = deepcopy(H100_SXM5)
+H100_SXM5_Low_Latency.name = "H100 SXM Low Latency"
+H100_SXM5_Low_Latency.latency_per_matmul_seconds /= 10
+H100_SXM5_Low_Latency.network_latency_per_level_seconds = [l/10 for l in H100_SXM5.network_latency_per_level_seconds]
 
-H100_SXM5_Superpod_Zero_Latency = deepcopy(H100_SXM5_Zero_Latency)
-H100_SXM5_Superpod_Zero_Latency.name = "H100 SXM Superpod ZL"
-H100_SXM5_Superpod_Zero_Latency.level_sizes = (256,)
+H100_SXM5_Superpod_Low_Latency = deepcopy(H100_SXM5_Low_Latency)
+H100_SXM5_Superpod_Low_Latency.name = "H100 SXM Superpod ZL"
+H100_SXM5_Superpod_Low_Latency.level_sizes = (256,)
 
 H100_SXM5_Global_NVLink = deepcopy(H100_SXM5)
 H100_SXM5_Global_NVLink.name = "H100 SXM Global NVLink"
@@ -330,16 +330,16 @@ H100_SXM5_Global_NVLink.network_bandwidths_per_level_Bps = [9e11]
 H100_SXM5_Global_NVLink.network_latency_per_level_seconds = [1.125e-6]
 H100_SXM5_Global_NVLink.level_sizes = ()
 
-H100_SXM5_Global_NVLink_Zero_Latency = deepcopy(H100_SXM5)
-H100_SXM5_Global_NVLink_Zero_Latency.name = "H100 SXM Global NVLink and ZL"
-H100_SXM5_Global_NVLink_Zero_Latency.latency_per_matmul_seconds = 0
-H100_SXM5_Global_NVLink_Zero_Latency.network_bandwidths_per_level_Bps = [9e11]
-H100_SXM5_Global_NVLink_Zero_Latency.network_latency_per_level_seconds = [0]
-H100_SXM5_Global_NVLink_Zero_Latency.level_sizes = ()
+H100_SXM5_Global_NVLink_Low_Latency = deepcopy(H100_SXM5)
+H100_SXM5_Global_NVLink_Low_Latency.name = "H100 SXM Global NVLink and LL"
+H100_SXM5_Global_NVLink_Low_Latency.latency_per_matmul_seconds /= 10
+H100_SXM5_Global_NVLink_Low_Latency.network_bandwidths_per_level_Bps = [9e11]
+H100_SXM5_Global_NVLink_Low_Latency.network_latency_per_level_seconds = [l/10 for l in H100_SXM5.network_latency_per_level_seconds]
+H100_SXM5_Global_NVLink_Low_Latency.level_sizes = ()
 
-H100_SXM5_Infinite_Network_Zero_Latency = deepcopy(H100_SXM5_Global_NVLink_Zero_Latency)
-H100_SXM5_Infinite_Network_Zero_Latency.name = "H100 SXM Infinite Network and ZL"
-H100_SXM5_Infinite_Network_Zero_Latency.network_bandwidths_per_level_Bps = [np.inf]
+H100_SXM5_Infinite_Network_Low_Latency = deepcopy(H100_SXM5_Global_NVLink_Low_Latency)
+H100_SXM5_Infinite_Network_Low_Latency.name = "H100 SXM Infinite Network and LL"
+H100_SXM5_Infinite_Network_Low_Latency.network_bandwidths_per_level_Bps = [np.inf]
 
 H100_SXM5_Superpod_Singleton = deepcopy(H100_SXM5)
 H100_SXM5_Superpod_Singleton.name = "H100 SXM Superpod Singleton"
