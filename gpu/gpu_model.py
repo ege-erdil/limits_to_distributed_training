@@ -10,7 +10,7 @@ def convert_to_np_array(variable, dtype):
 
 ki = 1024
 Mi = 1024*1024
-tensor_core_chunk_size = 16 # TODO: should perhaps be GPU-specific
+tensor_core_chunk_size = 8
 
 class GPU:
   def __init__(self, name, bitwidth, flop_per_clock_per_thread, register_bytes_per_processing_block, num_sms, l2_Bps, l2_bytes, global_Bps, effective_utilization, max_clock_Hz,
@@ -67,22 +67,21 @@ class GPU:
           ∂L/∂W = (∂L/∂Y)X^T,
         in which case for_weight_grads is set to True.
 
-    The microbatch size b will normally be the smallest dimension, since
-    pipeline and data parallelism compete to slice this dimension finely. Thus
-    we assume the kernel is tiled at all levels of the memory hierarchy
-    according to the weight matrix dimensions d1xd2 (even if this is not the
-    matmul output surface) to permit more parallelism across SMs.
+    The nanobatch size b will normally be the smallest dimension, since pipeline
+    and data parallelism compete to slice this dimension finely. Thus we assume
+    the kernel is tiled at all levels of the memory hierarchy according to the
+    weight matrix dimensions d1xd2 (even if this is not the matmul output
+    surface) to permit more parallelism across SMs.
 
     We also assume that the weights, along with their gradients, are permanently
     stored (except for data-parallel all-reduces, not modeled here) at the
     lowest level (among global, L2 cache, and registers) of the memory hierarchy
     in which they can fit, with no data movement required higher up."""
     # Data movement between global memory and L2 cache.
-    # TODO: Properly handle the case where L2 cache is smaller than total
-    # register capacity.
     global_tofrom_l2_io_bytes, _ = self._matmul_io_bytes_between_levels(
         d1, d2, b,
-        self.useful_l2_bytes,
+        max(self.useful_l2_bytes, # Can store the weight + gradient tiles either in L2 or the registers.
+            4*self.useful_register_bytes_per_processing_block),
         for_weight_grads=for_weight_grads)
 
     # Data movement between L2 cache and L1 cache/shared memory (weight matrix
@@ -238,10 +237,10 @@ V100_SXM2 = GPU(
       distributed_shared_memory = False,
       memory_bytes = 3.2e10,
       latency_per_matmul_seconds = 4.5e-6,
-      # 300 GB/s bidirectional from the V100 NVLink bandwidth, 6.25 GB/s = 50 Gb/s unidirectional (12.5 GB/s bidirectional) from the 4x100Gb/s EDR IB cards on a DGX-1 system
+      # 300 GB/s bidirectional from the V100 NVLink bandwidth, 6.25 GB/s = 50 Gb/s unidirectional (12.5 GB/s bidirectional) per GPU from the 4x100Gb/s EDR IB cards on a DGX-1 system
       # Source: https://images.nvidia.com/content/pdf/dgx1-v100-system-architecture-whitepaper.pdf
       network_bandwidths_per_level_Bps = [3e11, 1.25e10], 
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 A100 = GPU(
@@ -263,7 +262,7 @@ A100 = GPU(
       # 600 GB/s bidirectional from the A100 NVLink bandwidth, 25 GB/s = 200 Gb/s unidirectional (50 GB/s bidirectional) per GPU from the 8x200Gb/s ConnectX-6 cards on a DGX A100 system
       # Source: https://download.boston.co.uk/downloads/3/8/6/386750a7-52cd-4872-95e4-7196ab92b51c/DGX%20A100%20System%20Architecture%20Whitepaper.pdf (seems to be removed from Nvidia's web site)
       network_bandwidths_per_level_Bps = [6e11, 5e10],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 H100_PCIe = GPU(
@@ -283,7 +282,7 @@ H100_PCIe = GPU(
       # There's no standard H100 PCIe system like there is a DGX H100, but we assume the same interconnects as the DGX H100 below.
       # Source: https://www.nvidia.com/content/dam/en-zz/Solutions/gtcs22/data-center/h100/PB-11133-001_v01.pdf
       network_bandwidths_per_level_Bps = [9e11, 1e11],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
       level_sizes = (8,)
 )
 
@@ -304,7 +303,28 @@ H100_SXM5 = GPU(
       # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s unidirectional (100 GB/s bidirectional) per GPU from the 8x400Gb/s ConnectX-7 cards on a DGX H100 system
       # Source: https://nvdam.widen.net/s/95bdhpsgrs/nvidia_h100_tensor_core_gpu_architecture_whitepaper_v1.03
       network_bandwidths_per_level_Bps = [9e11, 1e11],
-      network_latency_per_level_seconds = [5e-6, 5e-6],
+      network_latency_per_level_seconds = [1.125e-6, 1.125e-6],
+      level_sizes = (8,)
+)
+
+H100_SXM5_Scaled = GPU(
+      name = "H100 SXM Scaled",
+      bitwidth = 16,
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
+      register_bytes_per_processing_block = 64*ki,
+      num_sms = 132,
+      l2_Bps = 10*6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much due to DSMEM.
+      l2_bytes = 50*Mi,
+      global_Bps = 10*3352e9, # https://resources.nvidia.com/en-us-tensor-core
+      max_clock_Hz = 1830e6,
+      effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
+      distributed_shared_memory = True,
+      memory_bytes = 8e10,
+      latency_per_matmul_seconds = 4.5e-6/10,
+      # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s unidirectional (100 GB/s bidirectional) per GPU from the 8x400Gb/s ConnectX-7 cards on a DGX H100 system
+      # Source: https://nvdam.widen.net/s/95bdhpsgrs/nvidia_h100_tensor_core_gpu_architecture_whitepaper_v1.03
+      network_bandwidths_per_level_Bps = [9e11*10, 1e11*10],
+      network_latency_per_level_seconds = [1.125e-6/10, 1.125e-6/10],
       level_sizes = (8,)
 )
 
@@ -333,33 +353,35 @@ H100_SXM5_Scaled = GPU(
 
 H100_SXM5_Superpod = deepcopy(H100_SXM5)
 H100_SXM5_Superpod.name = "H100 SXM Superpod"
-H100_SXM5_Superpod.level_sizes = (256,)
+H100_SXM5_Superpod.network_bandwidths_per_level_Bps = [9e11, 4.5e11, 1e11]
+H100_SXM5_Superpod.network_latency_per_level_seconds = [1.125e-6, 1.125e-6, 1.125e-6]
+H100_SXM5_Superpod.level_sizes = (8,32)
 
-H100_SXM5_Zero_Latency = deepcopy(H100_SXM5)
-H100_SXM5_Zero_Latency.name = "H100 SXM Zero Latency"
-H100_SXM5_Zero_Latency.latency_per_matmul_seconds = 0
-H100_SXM5_Zero_Latency.network_latency_per_level_seconds = [0, 0]
+H100_SXM5_Low_Latency = deepcopy(H100_SXM5)
+H100_SXM5_Low_Latency.name = "H100 SXM Low Latency"
+H100_SXM5_Low_Latency.latency_per_matmul_seconds /= 10
+H100_SXM5_Low_Latency.network_latency_per_level_seconds = [l/10 for l in H100_SXM5.network_latency_per_level_seconds]
 
-H100_SXM5_Superpod_Zero_Latency = deepcopy(H100_SXM5_Zero_Latency)
-H100_SXM5_Superpod_Zero_Latency.name = "H100 SXM Superpod ZL"
-H100_SXM5_Superpod_Zero_Latency.level_sizes = (256,)
+H100_SXM5_Superpod_Low_Latency = deepcopy(H100_SXM5_Low_Latency)
+H100_SXM5_Superpod_Low_Latency.name = "H100 SXM Superpod ZL"
+H100_SXM5_Superpod_Low_Latency.level_sizes = (256,)
 
 H100_SXM5_Global_NVLink = deepcopy(H100_SXM5)
 H100_SXM5_Global_NVLink.name = "H100 SXM Global NVLink"
 H100_SXM5_Global_NVLink.network_bandwidths_per_level_Bps = [9e11]
-H100_SXM5_Global_NVLink.network_latency_per_level_seconds = [5e-6]
+H100_SXM5_Global_NVLink.network_latency_per_level_seconds = [1.125e-6]
 H100_SXM5_Global_NVLink.level_sizes = ()
 
-H100_SXM5_Global_NVLink_Zero_Latency = deepcopy(H100_SXM5)
-H100_SXM5_Global_NVLink_Zero_Latency.name = "H100 SXM Global NVLink and ZL"
-H100_SXM5_Global_NVLink_Zero_Latency.latency_per_matmul_seconds = 0
-H100_SXM5_Global_NVLink_Zero_Latency.network_bandwidths_per_level_Bps = [9e11]
-H100_SXM5_Global_NVLink_Zero_Latency.network_latency_per_level_seconds = [0]
-H100_SXM5_Global_NVLink_Zero_Latency.level_sizes = ()
+H100_SXM5_Global_NVLink_Low_Latency = deepcopy(H100_SXM5)
+H100_SXM5_Global_NVLink_Low_Latency.name = "H100 SXM Global NVLink and LL"
+H100_SXM5_Global_NVLink_Low_Latency.latency_per_matmul_seconds /= 10
+H100_SXM5_Global_NVLink_Low_Latency.network_bandwidths_per_level_Bps = [9e11]
+H100_SXM5_Global_NVLink_Low_Latency.network_latency_per_level_seconds = [l/10 for l in H100_SXM5.network_latency_per_level_seconds]
+H100_SXM5_Global_NVLink_Low_Latency.level_sizes = ()
 
-H100_SXM5_Infinite_Network_Zero_Latency = deepcopy(H100_SXM5_Global_NVLink_Zero_Latency)
-H100_SXM5_Infinite_Network_Zero_Latency.name = "H100 SXM Infinite Network and ZL"
-H100_SXM5_Infinite_Network_Zero_Latency.network_bandwidths_per_level_Bps = [np.inf]
+H100_SXM5_Infinite_Network_Low_Latency = deepcopy(H100_SXM5_Global_NVLink_Low_Latency)
+H100_SXM5_Infinite_Network_Low_Latency.name = "H100 SXM Infinite Network and LL"
+H100_SXM5_Infinite_Network_Low_Latency.network_bandwidths_per_level_Bps = [np.inf]
 
 H100_SXM5_Superpod_Singleton = deepcopy(H100_SXM5)
 H100_SXM5_Superpod_Singleton.name = "H100 SXM Superpod Singleton"
@@ -368,7 +390,7 @@ H100_SXM5_Superpod_Singleton.l2_Bps *= 256
 H100_SXM5_Superpod_Singleton.global_Bps *= 256
 H100_SXM5_Superpod_Singleton.memory_bytes *= 256
 H100_SXM5_Superpod_Singleton.network_bandwidths_per_level_Bps = [5e10*256]
-H100_SXM5_Superpod_Singleton.network_latency_per_level_seconds = [5e-6]
+H100_SXM5_Superpod_Singleton.network_latency_per_level_seconds = [1.125e-6]
 H100_SXM5_Superpod_Singleton.level_sizes = ()
 
 gpu_list = [V100_SXM2, A100, H100_SXM5, H100_SXM5_Superpod, H100_SXM5_Superpod_Singleton]
