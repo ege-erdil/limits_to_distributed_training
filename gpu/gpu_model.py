@@ -308,6 +308,27 @@ H100_SXM5 = GPU(
       level_sizes = (8,)
 )
 
+H100_SXM5_Scaled = GPU(
+      name = "H100 SXM Scaled",
+      bitwidth = 16,
+      flop_per_clock_per_thread = {32: 2, 16: 32, 8: 64},
+      register_bytes_per_processing_block = 64*ki,
+      num_sms = 132,
+      l2_Bps = 10*6441e9,  # Reusing PCIe number scaled by number of SMs, not sure it's right but doesn't matter much due to DSMEM.
+      l2_bytes = 50*Mi,
+      global_Bps = 10*3352e9, # https://resources.nvidia.com/en-us-tensor-core
+      max_clock_Hz = 1830e6,
+      effective_utilization = 0.7, # empirically observed hardware utilization rate when running a long sequence of big matmuls
+      distributed_shared_memory = True,
+      memory_bytes = 8e10,
+      latency_per_matmul_seconds = 4.5e-6/10,
+      # 900 GB/s from the H100 NVLink bandwidth, 50 GB/s = 400 Gb/s unidirectional (100 GB/s bidirectional) per GPU from the 8x400Gb/s ConnectX-7 cards on a DGX H100 system
+      # Source: https://nvdam.widen.net/s/95bdhpsgrs/nvidia_h100_tensor_core_gpu_architecture_whitepaper_v1.03
+      network_bandwidths_per_level_Bps = [9e11*10, 1e11*10],
+      network_latency_per_level_seconds = [5e-6/10, 5e-6/10],
+      level_sizes = (8,)
+)
+
 # Some variations on the H100 SXM5 with different hypothetical network configurations.
 
 H100_SXM5_Superpod = deepcopy(H100_SXM5)
